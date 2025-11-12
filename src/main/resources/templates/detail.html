@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${attraction.name} + ' - South America Guide'">Attraction Details</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+<header>
+    <div class="container">
+        <a href="/" style="text-decoration: none; color: inherit; cursor: pointer;">
+            <h1>🌎 South America Guide</h1>
+            <p class="subtitle">Explore Cultural & Natural Heritage</p>
+        </a>
+    </div>
+</header>
+
+<main class="container">
+    <div class="detail-container">
+        <!-- Main Image -->
+        <div class="detail-image">
+            <img th:src="${attraction.mainImage}"
+                 th:alt="${attraction.name}"
+                 onerror="this.src='https://via.placeholder.com/800x400?text=No+Image'">
+        </div>
+
+        <!-- Attraction Info -->
+        <div class="detail-info">
+            <h1 th:text="${attraction.name}">Attraction Name</h1>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Type:</span>
+                    <span th:text="${attraction.type}">Type</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Country:</span>
+                    <span th:text="${attraction.country}">Country</span>
+                </div>
+                <div class="info-item" th:if="${attraction.latitude != null}">
+                    <span class="info-label">Coordinates:</span>
+                    <span th:text="${attraction.latitude + ', ' + attraction.longitude}">Coordinates</span>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="description" th:if="${attraction.description != null}">
+                <h2>Description</h2>
+                <p th:text="${attraction.description}">Description text</p>
+            </div>
+
+            <!-- External Links -->
+            <div class="external-links">
+                <a th:if="${attraction.wikipediaUrl != null}"
+                   th:href="${attraction.wikipediaUrl}"
+                   target="_blank"
+                   class="btn-external">
+                    📖 View on Wikipedia
+                </a>
+                <a th:if="${attraction.wikidataUri != null}"
+                   th:href="${attraction.wikidataUri}"
+                   target="_blank"
+                   class="btn-external">
+                    🌐 View on Wikidata
+                </a>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="detail-map" th:if="${attraction.latitude != null}">
+            <h2>Location</h2>
+            <div id="map" style="height: 400px; border-radius: 8px;"></div>
+        </div>
+
+        <!-- Additional Images Gallery -->
+        <div class="image-gallery" th:if="${not #lists.isEmpty(attraction.additionalImages)}">
+            <h2>Photo Gallery</h2>
+            <div class="gallery-grid">
+                <div class="gallery-item" th:each="image : ${attraction.additionalImages}">
+                    <img th:src="${image}"
+                         alt="Gallery image"
+                         onclick="openImageModal(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="back-section">
+            <a href="/" class="btn-back">← Back to List</a>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2025 South America Guide. Data from <a href="https://www.wikidata.org" target="_blank">Wikidata</a></p>
+    </div>
+</footer>
+
+<!-- Image Modal -->
+<div id="imageModal" class="modal" onclick="closeImageModal()">
+    <span class="modal-close">&times;</span>
+    <img class="modal-content" id="modalImage">
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script th:inline="javascript">
+    // Initialize map if coordinates are available
+    /*<![CDATA[*/
+    var latitude = /*[[${attraction.latitude}]]*/ null;
+    var longitude = /*[[${attraction.longitude}]]*/ null;
+    var name = /*[[${attraction.name}]]*/ 'Attraction';
+
+    if (latitude != null && longitude != null) {
+        var map = L.map('map').setView([latitude, longitude], 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.marker([latitude, longitude])
+            .addTo(map)
+            .bindPopup('<b>' + name + '</b>')
+            .openPopup();
+    }
+
+    // Image modal functions
+    function openImageModal(src) {
+        document.getElementById('imageModal').style.display = 'flex';
+        document.getElementById('modalImage').src = src;
+    }
+
+    function closeImageModal() {
+        document.getElementById('imageModal').style.display = 'none';
+    }
+    /*]]>*/
+</script>
+</body>
+</html>

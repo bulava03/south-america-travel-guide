@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - South America Guide</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header>
+    <div class="container">
+        <a href="/" style="text-decoration: none; color: inherit; cursor: pointer;">
+            <h1>🌎 South America Guide - Admin</h1>
+            <p class="subtitle">Administrative Panel</p>
+        </a>
+    </div>
+</header>
+
+<main class="container">
+    <div class="admin-container">
+        <!-- Statistics -->
+        <div class="stats-section">
+            <h2>📊 Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${stats.totalAttractions}">0</div>
+                    <div class="stat-label">Total Attractions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${stats.totalImages}">0</div>
+                    <div class="stat-label">Total Images</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${stats.countryCount}">0</div>
+                    <div class="stat-label">Countries</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Countries List -->
+        <div class="countries-section">
+            <h3>Countries in Database:</h3>
+            <div class="country-tags">
+                <span class="country-tag" th:each="country : ${stats.countries}" th:text="${country}">Country</span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions-section">
+            <h2>🔧 Actions</h2>
+
+            <div class="action-card">
+                <h3>Synchronize with Wikidata</h3>
+                <p>Fetch latest data from Wikidata and update the database. This may take 30-60 seconds.</p>
+                <button onclick="syncWithWikidata()" class="btn-action btn-primary">🔄 Sync Now</button>
+                <div id="sync-status" class="action-status"></div>
+            </div>
+
+            <div class="action-card">
+                <h3>Clear Database</h3>
+                <p class="warning">⚠️ Warning: This will delete all attractions and images from the database!</p>
+                <button onclick="confirmClear()" class="btn-action btn-danger">🗑️ Clear All Data</button>
+                <div id="clear-status" class="action-status"></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2025 South America Guide. Data from <a href="https://www.wikidata.org" target="_blank">Wikidata</a></p>
+    </div>
+</footer>
+
+<script>
+    function syncWithWikidata() {
+        const statusDiv = document.getElementById('sync-status');
+        statusDiv.innerHTML = '<p class="status-loading">⏳ Syncing with Wikidata...</p>';
+
+        fetch('/api/admin/sync', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                statusDiv.innerHTML = '<p class="status-success">✅ ' + data.message + '</p>';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                statusDiv.innerHTML = '<p class="status-error">❌ Error: ' + data.message + '</p>';
+            }
+        })
+        .catch(error => {
+            statusDiv.innerHTML = '<p class="status-error">❌ Network error: ' + error.message + '</p>';
+        });
+    }
+
+    function confirmClear() {
+        if (confirm('Are you sure you want to delete ALL data? This cannot be undone!')) {
+            clearDatabase();
+        }
+    }
+
+    function clearDatabase() {
+        const statusDiv = document.getElementById('clear-status');
+        statusDiv.innerHTML = '<p class="status-loading">⏳ Clearing database...</p>';
+
+        fetch('/api/admin/clear', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                statusDiv.innerHTML = '<p class="status-success">✅ ' + data.message + '</p>';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                statusDiv.innerHTML = '<p class="status-error">❌ Error: ' + data.message + '</p>';
+            }
+        })
+        .catch(error => {
+            statusDiv.innerHTML = '<p class="status-error">❌ Network error: ' + error.message + '</p>';
+        });
+    }
+</script>
+</body>
+</html>
