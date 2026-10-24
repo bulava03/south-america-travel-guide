@@ -1,0 +1,36 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: south_america_guide
+      MYSQL_USER: ${DB_USERNAME:?DB_USERNAME is not set}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is not set}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    ports:
+      # 3307 on the host, so it does not clash with a local MySQL
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      # TCP check: MySQL accepts TCP connections only after initialization is complete
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/south_america_guide?useSSL=false&allowPublicKeyRetrieval=true
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is not set}
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql-data:
