@@ -3,10 +3,12 @@ package com.project.guide.service;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.sparql.exec.http.QueryExecutionHTTP;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Service for querying Wikidata via SPARQL.
@@ -21,6 +23,9 @@ public class WikidataService {
     
     @Value("${api.wikidata.timeout}")
     private int timeout;
+
+    @Value("${api.user-agent}")
+    private String userAgent;
     
     /**
      * Fetches all tourist attractions from Wikidata.
@@ -34,7 +39,12 @@ public class WikidataService {
         String sparqlQuery = buildSparqlQuery();
         Map<String, Map<String, Object>> groupedAttractions = new HashMap<>();
         
-        try (QueryExecution qexec = QueryExecutionFactory.sparqlService(wikidataEndpoint, sparqlQuery)) {
+        // Wikimedia rejects requests with the default Java User-Agent (HTTP 403)
+        try (QueryExecution qexec = QueryExecutionHTTP.service(wikidataEndpoint)
+                .query(sparqlQuery)
+                .httpHeader("User-Agent", userAgent)
+                .timeout(timeout, TimeUnit.MILLISECONDS)
+                .build()) {
             ResultSet results = qexec.execSelect();
             
             while (results.hasNext()) {

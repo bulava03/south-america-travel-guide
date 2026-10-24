@@ -1,6 +1,7 @@
 package com.project.guide.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -17,6 +18,9 @@ import java.util.Map;
 public class WikipediaService {
 
     private final RestTemplate restTemplate;
+
+    @Value("${api.user-agent}")
+    private String userAgent;
 
     public WikipediaService() {
         this.restTemplate = new RestTemplate();
@@ -53,7 +57,7 @@ public class WikipediaService {
 
             // Create headers with User-Agent (REQUIRED by Wikipedia)
             HttpHeaders headers = new HttpHeaders();
-            headers.set("User-Agent", "SouthAmericaGuide/1.0 (Educational Project; Java/Spring Boot)");
+            headers.set("User-Agent", userAgent);
 
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
