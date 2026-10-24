@@ -31,12 +31,13 @@ public class AttractionService {
     
     /**
      * Syncs attractions from Wikidata to local database.
+     * Existing attractions are updated by Wikidata URI, new ones are created,
+     * and attractions that are no longer returned by Wikidata are removed.
+     * Nothing changes if the Wikidata request fails.
      */
     @Transactional
     public void syncWithWikidata() {
         log.info("Starting synchronization with Wikidata...");
-
-        clearAllData();
         
         Map<String, Map<String, Object>> wikidataAttractions = wikidataService.fetchAttractions();
         
@@ -69,27 +70,16 @@ public class AttractionService {
                 }
             }
             
-            // Handle images
+            // Replace images, first image is the main one
             @SuppressWarnings("unchecked")
-            List<String> imageUrls = (List<String>) data.get("images");
+            List<String> imageUrls = (List<String>) data.getOrDefault("images", List.of());
             
-            if (imageUrls != null && !imageUrls.isEmpty()) {
-                // Set first image as main
-                attraction.setMainImage(imageUrls.get(0));
-                
-                // Clear existing images if updating
-                if (!isNew) {
-                    attraction.getImages().clear();
-                }
-                
-                // Add all images
-                for (String imageUrl : imageUrls) {
-                    AttractionImage image = AttractionImage.builder()
-                            .imageUrl(imageUrl)
-                            .attraction(attraction)
-                            .build();
-                    attraction.addImage(image);
-                }
+            attraction.getImages().clear();
+            attraction.setMainImage(imageUrls.isEmpty() ? null : imageUrls.get(0));
+            for (String imageUrl : imageUrls) {
+                attraction.addImage(AttractionImage.builder()
+                        .imageUrl(imageUrl)
+                        .build());
             }
             
             attractionRepository.save(attraction);
@@ -101,7 +91,14 @@ public class AttractionService {
             }
         }
         
-        log.info("Synchronization complete. Created: {}, Updated: {}", created, updated);
+        // Remove attractions that are no longer returned by Wikidata
+        List<Attraction> removed = attractionRepository.findAll().stream()
+                .filter(attraction -> !wikidataAttractions.containsKey(attraction.getWikidataUri()))
+                .collect(Collectors.toList());
+        attractionRepository.deleteAll(removed);
+        
+        log.info("Synchronization complete. Created: {}, Updated: {}, Removed: {}",
+                created, updated, removed.size());
     }
     
     /**
@@ -170,15 +167,6 @@ public class AttractionService {
                 "countries", countries,
                 "countryCount", countries.size()
         );
-    }
-    
-    /**
-     * Clears all data from database.
-     */
-    @Transactional
-    public void clearAllData() {
-        log.warn("Clearing all data from database");
-        attractionRepository.deleteAll();
     }
     
     /**

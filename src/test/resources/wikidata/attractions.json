@@ -1,0 +1,52 @@
+{
+  "head": { "vars": ["item", "itemLabel", "typeLabel", "countryLabel", "coord", "image", "article"] },
+  "results": {
+    "bindings": [
+      {
+        "item": { "type": "uri", "value": "http://www.wikidata.org/entity/Q676203" },
+        "itemLabel": { "type": "literal", "xml:lang": "en", "value": "Machu Picchu" },
+        "typeLabel": { "type": "literal", "xml:lang": "en", "value": "World Heritage Site" },
+        "countryLabel": { "type": "literal", "xml:lang": "en", "value": "Peru" },
+        "coord": { "type": "literal", "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral", "value": "Point(-72.545 -13.1631)" },
+        "image": { "type": "uri", "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Machu%20Picchu%201.jpg" },
+        "article": { "type": "uri", "value": "https://en.wikipedia.org/wiki/Machu_Picchu" }
+      },
+      {
+        "item": { "type": "uri", "value": "http://www.wikidata.org/entity/Q676203" },
+        "itemLabel": { "type": "literal", "xml:lang": "en", "value": "Machu Picchu" },
+        "typeLabel": { "type": "literal", "xml:lang": "en", "value": "World Heritage Site" },
+        "countryLabel": { "type": "literal", "xml:lang": "en", "value": "Peru" },
+        "coord": { "type": "literal", "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral", "value": "Point(-72.545 -13.1631)" },
+        "image": { "type": "uri", "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Machu%20Picchu%202.jpg" },
+        "article": { "type": "uri", "value": "https://en.wikipedia.org/wiki/Machu_Picchu" }
+      },
+      {
+        "item": { "type": "uri", "value": "http://www.wikidata.org/entity/Q676203" },
+        "itemLabel": { "type": "literal", "xml:lang": "en", "value": "Machu Picchu" },
+        "typeLabel": { "type": "literal", "xml:lang": "en", "value": "archaeological site" },
+        "countryLabel": { "type": "literal", "xml:lang": "en", "value": "Peru" },
+        "coord": { "type": "literal", "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral", "value": "Point(-72.545 -13.1631)" },
+        "image": { "type": "uri", "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Machu%20Picchu%201.jpg" },
+        "article": { "type": "uri", "value": "https://en.wikipedia.org/wiki/Machu_Picchu" }
+      },
+      {
+        "item": { "type": "uri", "value": "http://www.wikidata.org/entity/Q193457" },
+        "itemLabel": { "type": "literal", "xml:lang": "en", "value": "Iguazu Falls" },
+        "typeLabel": { "type": "literal", "xml:lang": "en", "value": "tourist attraction" },
+        "countryLabel": { "type": "literal", "xml:lang": "en", "value": "Argentina" },
+        "coord": { "type": "literal", "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral", "value": "Point(-54.4367 -25.6953)" },
+        "image": { "type": "uri", "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Iguazu.jpg" },
+        "article": { "type": "uri", "value": "https://en.wikipedia.org/wiki/Iguazu_Falls" }
+      },
+      {
+        "item": { "type": "uri", "value": "http://www.wikidata.org/entity/Q99999999" },
+        "itemLabel": { "type": "literal", "value": "Q99999999" },
+        "typeLabel": { "type": "literal", "xml:lang": "en", "value": "archaeological site" },
+        "countryLabel": { "type": "literal", "xml:lang": "en", "value": "Chile" },
+        "coord": { "type": "literal", "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral", "value": "Point(-70.0 -20.0)" },
+        "image": { "type": "uri", "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Unknown.jpg" },
+        "article": { "type": "uri", "value": "https://en.wikipedia.org/wiki/Unknown" }
+      }
+    ]
+  }
+}

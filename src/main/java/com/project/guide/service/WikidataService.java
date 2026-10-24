@@ -37,7 +37,6 @@ public class WikidataService {
         log.info("Starting to fetch attractions from Wikidata...");
         
         String sparqlQuery = buildSparqlQuery();
-        Map<String, Map<String, Object>> groupedAttractions = new HashMap<>();
         
         // Wikimedia rejects requests with the default Java User-Agent (HTTP 403)
         try (QueryExecution qexec = QueryExecutionHTTP.service(wikidataEndpoint)
@@ -45,57 +44,69 @@ public class WikidataService {
                 .httpHeader("User-Agent", userAgent)
                 .timeout(timeout, TimeUnit.MILLISECONDS)
                 .build()) {
-            ResultSet results = qexec.execSelect();
+            Map<String, Map<String, Object>> groupedAttractions = parseResults(qexec.execSelect());
+            log.info("Successfully fetched {} attractions", groupedAttractions.size());
+            return groupedAttractions;
+        } catch (Exception e) {
+            log.error("Error fetching data from Wikidata", e);
+            throw new RuntimeException("Failed to fetch attractions from Wikidata", e);
+        }
+    }
+    
+    /**
+     * Groups SPARQL result rows by attraction URI.
+     * One attraction may come in several rows, one per image.
+     */
+    Map<String, Map<String, Object>> parseResults(ResultSet results) {
+        Map<String, Map<String, Object>> groupedAttractions = new LinkedHashMap<>();
+        
+        while (results.hasNext()) {
+            QuerySolution solution = results.next();
             
-            while (results.hasNext()) {
-                QuerySolution solution = results.next();
+            String uri = getStringValue(solution, "item");
+            String name = getStringValue(solution, "itemLabel");
+            String type = getStringValue(solution, "typeLabel");
+            String country = getStringValue(solution, "countryLabel");
+            String imageUrl = getStringValue(solution, "image");
+            String coords = getStringValue(solution, "coord");
+            String wikipedia = getStringValue(solution, "article");
+            
+            // Label service returns the entity id (e.g. "Q12345") when there is no English label
+            if (name == null || name.matches("Q\\d+")) {
+                continue;
+            }
+            
+            // Group by URI
+            groupedAttractions.putIfAbsent(uri, new HashMap<>());
+            Map<String, Object> attraction = groupedAttractions.get(uri);
+            
+            // Set basic fields (only once per URI)
+            if (!attraction.containsKey("name")) {
+                attraction.put("uri", uri);
+                attraction.put("name", name);
+                attraction.put("type", type);
+                attraction.put("country", country);
+                attraction.put("wikipedia", wikipedia);
+                attraction.put("images", new ArrayList<String>());
                 
-                String uri = getStringValue(solution, "item");
-                String name = getStringValue(solution, "itemLabel");
-                String type = getStringValue(solution, "typeLabel");
-                String country = getStringValue(solution, "countryLabel");
-                String imageUrl = getStringValue(solution, "image");
-                String coords = getStringValue(solution, "coord");
-                String wikipedia = getStringValue(solution, "article");
-                
-                // Group by URI
-                groupedAttractions.putIfAbsent(uri, new HashMap<>());
-                Map<String, Object> attraction = groupedAttractions.get(uri);
-                
-                // Set basic fields (only once per URI)
-                if (!attraction.containsKey("name")) {
-                    attraction.put("uri", uri);
-                    attraction.put("name", name);
-                    attraction.put("type", type);
-                    attraction.put("country", country);
-                    attraction.put("wikipedia", wikipedia);
-                    attraction.put("images", new ArrayList<String>());
-                    
-                    // Parse coordinates
-                    if (coords != null && coords.startsWith("Point(")) {
-                        String[] latLon = parseCoordinates(coords);
-                        if (latLon != null) {
-                            attraction.put("longitude", latLon[0]);
-                            attraction.put("latitude", latLon[1]);
-                        }
-                    }
-                }
-                
-                // Add image to list (avoid duplicates)
-                if (imageUrl != null && !imageUrl.isEmpty()) {
-                    @SuppressWarnings("unchecked")
-                    List<String> images = (List<String>) attraction.get("images");
-                    if (!images.contains(imageUrl)) {
-                        images.add(imageUrl);
+                // Parse coordinates
+                if (coords != null && coords.startsWith("Point(")) {
+                    String[] latLon = parseCoordinates(coords);
+                    if (latLon != null) {
+                        attraction.put("longitude", latLon[0]);
+                        attraction.put("latitude", latLon[1]);
                     }
                 }
             }
             
-            log.info("Successfully fetched {} attractions", groupedAttractions.size());
-            
-        } catch (Exception e) {
-            log.error("Error fetching data from Wikidata", e);
-            throw new RuntimeException("Failed to fetch attractions from Wikidata", e);
+            // Add image to list (avoid duplicates)
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                @SuppressWarnings("unchecked")
+                List<String> images = (List<String>) attraction.get("images");
+                if (!images.contains(imageUrl)) {
+                    images.add(imageUrl);
+                }
+            }
         }
         
         return groupedAttractions;
@@ -108,38 +119,34 @@ public class WikidataService {
         return """
         PREFIX wd: <http://www.wikidata.org/entity/>
         PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX schema: <http://schema.org/>
+        PREFIX wikibase: <http://wikiba.se/ontology#>
+        PREFIX bd: <http://www.bigdata.com/rdf#>
         
-        SELECT DISTINCT ?item ?itemLabel ?typeLabel ?countryLabel ?coord ?image ?article
+        SELECT ?item ?itemLabel ?typeLabel ?countryLabel ?coord ?image ?article
         WHERE {
-          ?item wdt:P31 ?type.
-          ?item wdt:P17 ?country.
-          ?item rdfs:label ?itemLabel.
-          ?type rdfs:label ?typeLabel.
-          ?country rdfs:label ?countryLabel.
-          
-          FILTER(LANG(?itemLabel) = "en")
-          FILTER(LANG(?typeLabel) = "en")
-          FILTER(LANG(?countryLabel) = "en")
-          
           VALUES ?type {
             wd:Q9259       # World Heritage Site
             wd:Q570116     # Tourist Attraction
             wd:Q839954     # Archaeological Site
-            wd:Q166620     # Historic Site
+            wd:Q1081138    # Historic Site
           }
           
-          VALUES ?country { 
+          VALUES ?country {
             wd:Q419 wd:Q155 wd:Q298 wd:Q750 wd:Q414 wd:Q736
           }
           
-          ?item wdt:P625 ?coord.
-          ?item wdt:P18 ?image.
+          ?item wdt:P31 ?type;
+                wdt:P17 ?country;
+                wdt:P625 ?coord;
+                wdt:P18 ?image.
           
-          ?article schema:about ?item.
-          ?article schema:inLanguage "en".
-          FILTER(CONTAINS(STR(?article), "wikipedia"))
+          # English Wikipedia article
+          ?article schema:about ?item;
+                   schema:isPartOf <https://en.wikipedia.org/>.
+          
+          # Label service is much faster than joining rdfs:label with language filters
+          SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
         }
         LIMIT 100
         """;

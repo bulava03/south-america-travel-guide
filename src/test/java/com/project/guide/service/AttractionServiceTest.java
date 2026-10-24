@@ -9,16 +9,20 @@ import com.project.guide.repository.AttractionImageRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -196,11 +200,110 @@ class AttractionServiceTest {
     }
     
     @Test
-    void testClearAllData() {
+    void testSyncCreatesNewAttraction() {
+        // Arrange
+        when(wikidataService.fetchAttractions()).thenReturn(Map.of(
+                "http://www.wikidata.org/entity/Q676203", wikidataData("Machu Picchu",
+                        List.of("http://example.com/a.jpg", "http://example.com/b.jpg"))
+        ));
+        when(attractionRepository.findByWikidataUri(any())).thenReturn(Optional.empty());
+        when(attractionRepository.findAll()).thenReturn(List.of());
+
         // Act
-        attractionService.clearAllData();
-        
+        attractionService.syncWithWikidata();
+
         // Assert
-        verify(attractionRepository, times(1)).deleteAll();
+        ArgumentCaptor<Attraction> saved = ArgumentCaptor.forClass(Attraction.class);
+        verify(attractionRepository).save(saved.capture());
+        Attraction attraction = saved.getValue();
+
+        assertNull(attraction.getId());
+        assertEquals("http://www.wikidata.org/entity/Q676203", attraction.getWikidataUri());
+        assertEquals("Machu Picchu", attraction.getName());
+        assertEquals("Peru", attraction.getCountry());
+        assertEquals(-13.1631, attraction.getLatitude());
+        assertEquals(-72.545, attraction.getLongitude());
+        assertEquals("http://example.com/a.jpg", attraction.getMainImage());
+        assertEquals(2, attraction.getImages().size());
+        assertSame(attraction, attraction.getImages().get(0).getAttraction());
+    }
+
+    @Test
+    void testSyncUpdatesExistingAttractionInsteadOfRecreating() {
+        // Arrange
+        testAttraction.addImage(AttractionImage.builder().imageUrl("http://example.com/old.jpg").build());
+        when(wikidataService.fetchAttractions()).thenReturn(Map.of(
+                testAttraction.getWikidataUri(), wikidataData("Machu Picchu (updated)",
+                        List.of("http://example.com/new.jpg"))
+        ));
+        when(attractionRepository.findByWikidataUri(testAttraction.getWikidataUri()))
+                .thenReturn(Optional.of(testAttraction));
+        when(attractionRepository.findAll()).thenReturn(List.of(testAttraction));
+
+        // Act
+        attractionService.syncWithWikidata();
+
+        // Assert
+        verify(attractionRepository).save(testAttraction);
+        assertEquals(1L, testAttraction.getId());
+        assertEquals("Machu Picchu (updated)", testAttraction.getName());
+        assertEquals(1, testAttraction.getImages().size());
+        assertEquals("http://example.com/new.jpg", testAttraction.getImages().get(0).getImageUrl());
+        assertEquals("http://example.com/new.jpg", testAttraction.getMainImage());
+
+        verify(attractionRepository, never()).deleteAll();
+        verify(attractionRepository).deleteAll(List.of());
+    }
+
+    @Test
+    void testSyncRemovesAttractionsMissingInWikidata() {
+        // Arrange
+        Attraction outdated = Attraction.builder()
+                .id(2L)
+                .wikidataUri("http://www.wikidata.org/entity/Q1")
+                .name("Outdated")
+                .images(new ArrayList<>())
+                .build();
+        when(wikidataService.fetchAttractions()).thenReturn(Map.of(
+                testAttraction.getWikidataUri(), wikidataData("Machu Picchu", List.of())
+        ));
+        when(attractionRepository.findByWikidataUri(testAttraction.getWikidataUri()))
+                .thenReturn(Optional.of(testAttraction));
+        when(attractionRepository.findAll()).thenReturn(List.of(testAttraction, outdated));
+
+        // Act
+        attractionService.syncWithWikidata();
+
+        // Assert
+        verify(attractionRepository).deleteAll(List.of(outdated));
+    }
+
+    @Test
+    void testSyncKeepsDataWhenWikidataFails() {
+        // Arrange
+        when(wikidataService.fetchAttractions())
+                .thenThrow(new RuntimeException("Failed to fetch attractions from Wikidata"));
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> attractionService.syncWithWikidata());
+
+        verify(attractionRepository, never()).save(any());
+        verify(attractionRepository, never()).deleteAll();
+        verify(attractionRepository, never()).deleteAll(any());
+    }
+
+    /**
+     * Builds attraction data in the format returned by WikidataService.
+     */
+    private Map<String, Object> wikidataData(String name, List<String> images) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("name", name);
+        data.put("type", "World Heritage Site");
+        data.put("country", "Peru");
+        data.put("wikipedia", "https://en.wikipedia.org/wiki/Machu_Picchu");
+        data.put("latitude", "-13.1631");
+        data.put("longitude", "-72.545");
+        data.put("images", new ArrayList<>(images));
+        return data;
     }
 }
