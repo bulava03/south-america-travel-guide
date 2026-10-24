@@ -14,7 +14,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @Slf4j
 public class AdminController {
     
@@ -38,28 +37,6 @@ public class AdminController {
             return ResponseEntity.internalServerError().body(Map.of(
                     "status", "error",
                     "message", "Failed to sync: " + e.getMessage()
-            ));
-        }
-    }
-    
-    /**
-     * Clears all data from database.
-     * POST /api/admin/clear
-     */
-    @PostMapping("/clear")
-    public ResponseEntity<Map<String, String>> clearAllData() {
-        try {
-            log.warn("Admin triggered data clear");
-            attractionService.clearAllData();
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "message", "Successfully cleared all data"
-            ));
-        } catch (Exception e) {
-            log.error("Error clearing data", e);
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "status", "error",
-                    "message", "Failed to clear data: " + e.getMessage()
             ));
         }
     }

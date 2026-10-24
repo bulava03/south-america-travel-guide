@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Admin Panel - South America Guide</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
@@ -56,12 +58,9 @@
                 <div id="sync-status" class="action-status"></div>
             </div>
 
-            <div class="action-card">
-                <h3>Clear Database</h3>
-                <p class="warning">⚠️ Warning: This will delete all attractions and images from the database!</p>
-                <button onclick="confirmClear()" class="btn-action btn-danger">🗑️ Clear All Data</button>
-                <div id="clear-status" class="action-status"></div>
-            </div>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn-action">🚪 Log out</button>
+            </form>
         </div>
     </div>
 </main>
@@ -77,37 +76,12 @@
         const statusDiv = document.getElementById('sync-status');
         statusDiv.innerHTML = '<p class="status-loading">⏳ Syncing with Wikidata...</p>';
 
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
         fetch('/api/admin/sync', {
-            method: 'POST'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                statusDiv.innerHTML = '<p class="status-success">✅ ' + data.message + '</p>';
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-            } else {
-                statusDiv.innerHTML = '<p class="status-error">❌ Error: ' + data.message + '</p>';
-            }
-        })
-        .catch(error => {
-            statusDiv.innerHTML = '<p class="status-error">❌ Network error: ' + error.message + '</p>';
-        });
-    }
-
-    function confirmClear() {
-        if (confirm('Are you sure you want to delete ALL data? This cannot be undone!')) {
-            clearDatabase();
-        }
-    }
-
-    function clearDatabase() {
-        const statusDiv = document.getElementById('clear-status');
-        statusDiv.innerHTML = '<p class="status-loading">⏳ Clearing database...</p>';
-
-        fetch('/api/admin/clear', {
-            method: 'POST'
+            method: 'POST',
+            headers: { [csrfHeader]: csrfToken }
         })
         .then(response => response.json())
         .then(data => {
