@@ -2,6 +2,7 @@ package com.project.guide.service;
 
 import com.project.guide.dto.AttractionDTO;
 import com.project.guide.dto.AttractionDetailDTO;
+import com.project.guide.exception.AttractionNotFoundException;
 import com.project.guide.model.Attraction;
 import com.project.guide.model.AttractionImage;
 import com.project.guide.repository.AttractionRepository;
@@ -26,6 +27,7 @@ public class AttractionService {
     private final AttractionRepository attractionRepository;
     private final AttractionImageRepository imageRepository;
     private final WikidataService wikidataService;
+    private final WikipediaService wikipediaService;
     
     /**
      * Syncs attractions from Wikidata to local database.
@@ -131,11 +133,20 @@ public class AttractionService {
     
     /**
      * Gets detailed information about a specific attraction.
+     * Description is fetched from Wikipedia if the attraction has a Wikipedia URL.
      */
     public AttractionDetailDTO getAttractionDetails(Long id) {
         Attraction attraction = attractionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Attraction not found with id: " + id));
-        return convertToDetailDTO(attraction);
+                .orElseThrow(() -> new AttractionNotFoundException(id));
+
+        AttractionDetailDTO details = convertToDetailDTO(attraction);
+
+        String wikipediaExtract = wikipediaService.fetchWikipediaExtract(attraction.getWikipediaUrl());
+        if (wikipediaExtract != null) {
+            details.setDescription(wikipediaExtract);
+        }
+
+        return details;
     }
     
     /**

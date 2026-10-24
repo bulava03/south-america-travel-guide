@@ -1,6 +1,7 @@
 package com.project.guide.service;
 
 import com.project.guide.dto.AttractionDTO;
+import com.project.guide.exception.AttractionNotFoundException;
 import com.project.guide.model.Attraction;
 import com.project.guide.model.AttractionImage;
 import com.project.guide.repository.AttractionRepository;
@@ -31,7 +32,10 @@ class AttractionServiceTest {
     
     @Mock
     private WikidataService wikidataService;
-    
+
+    @Mock
+    private WikipediaService wikipediaService;
+
     @InjectMocks
     private AttractionService attractionService;
     
@@ -121,14 +125,29 @@ class AttractionServiceTest {
         
         verify(attractionRepository, times(1)).findById(1L);
     }
-    
+
+    @Test
+    void testGetAttractionDetailsUsesWikipediaDescription() {
+        // Arrange
+        testAttraction.setWikipediaUrl("https://en.wikipedia.org/wiki/Machu_Picchu");
+        when(attractionRepository.findById(1L)).thenReturn(Optional.of(testAttraction));
+        when(wikipediaService.fetchWikipediaExtract("https://en.wikipedia.org/wiki/Machu_Picchu"))
+                .thenReturn("Machu Picchu is a 15th-century Inca citadel.");
+
+        // Act
+        var result = attractionService.getAttractionDetails(1L);
+
+        // Assert
+        assertEquals("Machu Picchu is a 15th-century Inca citadel.", result.getDescription());
+    }
+
     @Test
     void testGetAttractionDetailsNotFound() {
         // Arrange
         when(attractionRepository.findById(999L)).thenReturn(Optional.empty());
         
         // Act & Assert
-        assertThrows(RuntimeException.class, () -> {
+        assertThrows(AttractionNotFoundException.class, () -> {
             attractionService.getAttractionDetails(999L);
         });
         
