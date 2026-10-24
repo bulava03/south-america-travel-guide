@@ -2,6 +2,7 @@ package com.project.guide.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriUtils;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -22,8 +24,8 @@ public class WikipediaService {
     @Value("${api.user-agent}")
     private String userAgent;
 
-    public WikipediaService() {
-        this.restTemplate = new RestTemplate();
+    public WikipediaService(RestTemplateBuilder restTemplateBuilder) {
+        this.restTemplate = restTemplateBuilder.build();
     }
 
     /**
@@ -62,8 +64,9 @@ public class WikipediaService {
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
             // Make HTTP request with headers
+            // URI instead of String: the title is already encoded and must not be encoded again
             ResponseEntity<Map> response = restTemplate.exchange(
-                    apiUrl,
+                    URI.create(apiUrl),
                     HttpMethod.GET,
                     entity,
                     Map.class
