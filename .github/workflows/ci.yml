@@ -22,30 +22,10 @@ jobs:
       - name: Run tests
         run: mvn -B test
 
-  docker:
-    name: Docker image
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Build image
-        run: docker build -t south-america-guide .
-
-      # The browser tests run this image instead of building their own
-      - name: Save image
-        run: docker save south-america-guide | gzip > image.tar.gz
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: image
-          path: image.tar.gz
-          retention-days: 1
-
   e2e:
     name: Browser tests
     runs-on: ubuntu-latest
-    needs: docker
+    needs: test
     steps:
       - uses: actions/checkout@v5
 
@@ -55,12 +35,9 @@ jobs:
           cache: npm
           cache-dependency-path: e2e/package-lock.json
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: image
-
-      - name: Load image
-        run: gunzip -c image.tar.gz | docker load
+      # The image is built once here and the tests run exactly this image
+      - name: Build image
+        run: docker build -t south-america-guide .
 
       - name: Start the app with test data
         run: docker compose -f docker-compose.e2e.yml up -d --no-build --wait
