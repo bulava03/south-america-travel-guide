@@ -1,38 +1,57 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error - South America Guide</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:with="notFound=${status == 404}, serverError=${status != null and status >= 500}">
+<head th:replace="~{fragments :: pageHead(${notFound} ? 'Page not found - South America Guide' : 'Error - South America Guide')}"></head>
 <body>
-<header>
-    <div class="container">
-        <a href="/" style="text-decoration: none; color: inherit; cursor: pointer;">
-            <h1>🌎 South America Guide</h1>
-            <p class="subtitle">Explore Cultural & Natural Heritage</p>
-        </a>
-    </div>
-</header>
+<div class="hero hero-error">
+    <!-- 404: Salar de Uyuni, other errors: Torres del Paine -->
+    <img class="hero-bg" alt="" th:if="${notFound}"
+         src="https://commons.wikimedia.org/wiki/Special:FilePath/Salar%20de%20Uyuni%20-%20panoramio%20(10).jpg?width=1920">
+    <img class="hero-bg" alt="" th:unless="${notFound}"
+         src="https://commons.wikimedia.org/wiki/Special:FilePath/Torres%20del%20Paine%2C%20Laguna%20Azul%2009.jpg?width=1920">
+    <div class="hero-shade"></div>
 
-<main class="container">
-    <div class="no-results">
-        <h2 th:text="${status == 404} ? 'Page not found' : 'Something went wrong'">Something went wrong</h2>
-        <p th:text="${status == 404}
-                ? 'The attraction or page you are looking for does not exist.'
-                : 'Please try again later.'">Please try again later.</p>
-    </div>
+    <header class="hero-header container">
+        <a th:replace="~{fragments :: logo}"></a>
+        <nav th:replace="~{fragments :: mainNav('')}"></nav>
+    </header>
 
-    <div class="back-section">
-        <a href="/" class="btn-back">← Back to List</a>
-    </div>
-</main>
+    <main class="hero-main container">
+        <div class="hero-text">
+            <span class="error-code" th:text="'Error ' + ${status}">Error 404</span>
+            <h1 class="readable" th:text="${notFound} ? 'This place is not on our map'
+                    : (${serverError} ? 'Something went wrong on our side' : 'This page cannot be opened')">
+                This place is not on our map</h1>
+            <p class="readable" th:text="${notFound}
+                    ? 'The link may be wrong, or the place was removed after the latest update from Wikidata. There is plenty more to see.'
+                    : (${serverError} ? 'We could not load this page. It is not your fault: please try again in a minute.'
+                                      : 'The link looks broken. Try to find the place from the list.')">
+                The link may be wrong.</p>
+            <div class="hero-actions">
+                <a class="btn btn-sun" th:if="${serverError}" th:href="${path}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg>
+                    Try again
+                </a>
+                <a class="btn btn-sun" th:unless="${serverError}" th:href="@{/places}">Explore places
+                    <svg th:replace="~{fragments :: arrow}"></svg>
+                </a>
+                <a class="btn btn-glass" th:href="@{/}">Home page</a>
+            </div>
+        </div>
 
-<footer>
-    <div class="container">
-        <p>&copy; 2025 South America Guide. Data from <a href="https://www.wikidata.org" target="_blank">Wikidata</a></p>
-    </div>
-</footer>
+        <div class="hero-footer">
+            <div class="chips" th:unless="${#lists.isEmpty(popular)}">
+                <span class="chips-label readable">Most visited:</span>
+                <a class="chip" th:each="p : ${popular}" th:href="@{/attraction/{id}(id=${p.id})}"
+                   th:text="${p.name}">Iguaçu Falls</a>
+            </div>
+            <span class="photo-credit readable" th:if="${notFound}">Salar de Uyuni · Bolivia · Photo:
+                <a href="https://commons.wikimedia.org/wiki/File:Salar_de_Uyuni_-_panoramio_(10).jpg">Wikimedia Commons</a></span>
+            <span class="photo-credit readable" th:unless="${notFound}">Torres del Paine · Chile · Photo:
+                <a href="https://commons.wikimedia.org/wiki/File:Torres_del_Paine,_Laguna_Azul_09.jpg">Wikimedia Commons</a></span>
+        </div>
+    </main>
+</div>
 </body>
 </html>

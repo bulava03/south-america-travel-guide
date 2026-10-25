@@ -10,6 +10,7 @@ import com.project.guide.repository.AttractionImageRepository;
 import com.project.guide.repository.AttractionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -115,6 +116,16 @@ public class AttractionService {
         return findAttractions(attraction.getCountries().get(0), null).stream()
                 .filter(other -> !other.getId().equals(attraction.getId()))
                 .limit(limit)
+                .toList();
+    }
+
+    /**
+     * The most popular attractions of all countries.
+     */
+    @Transactional(readOnly = true)
+    public List<AttractionDTO> findMostVisited(int limit) {
+        return attractionRepository.findByOrderByPopularityDesc(Limit.of(limit)).stream()
+                .map(AttractionDTO::from)
                 .toList();
     }
 

@@ -1,6 +1,7 @@
 package com.project.guide.repository;
 
 import com.project.guide.model.Attraction;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,6 +28,11 @@ public interface AttractionRepository extends JpaRepository<Attraction, Long> {
      */
     @EntityGraph(attributePaths = "countries")
     List<Attraction> findAllByOrderByPopularityDesc();
+
+    /**
+     * Finds the most popular attractions; countries are loaded lazily.
+     */
+    List<Attraction> findByOrderByPopularityDesc(Limit limit);
 
     /**
      * Finds all attractions located in a specific country.

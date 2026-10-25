@@ -16,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Limit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +85,13 @@ class AttractionServiceTest {
 
         assertEquals(List.of("Peru"), attractionService.findAttractions("Peru", "").get(0).getCountries());
         assertEquals(List.of(), attractionService.findAttractions(null, null));
+    }
+
+    @Test
+    void testFindMostVisited() {
+        when(attractionRepository.findByOrderByPopularityDesc(Limit.of(4))).thenReturn(List.of(testAttraction));
+
+        assertEquals("Machu Picchu", attractionService.findMostVisited(4).get(0).getName());
     }
 
     @Test
