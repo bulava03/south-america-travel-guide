@@ -14,6 +14,7 @@ import java.util.Optional;
 /**
  * Repository interface for Attraction entity.
  * Lists are sorted by popularity, countries are fetched in the same query.
+ * Queries for the site skip hidden attractions; the admin panel sees all of them.
  */
 @Repository
 public interface AttractionRepository extends JpaRepository<Attraction, Long> {
@@ -24,33 +25,49 @@ public interface AttractionRepository extends JpaRepository<Attraction, Long> {
     Optional<Attraction> findByWikidataUri(String wikidataUri);
 
     /**
-     * Finds all attractions, most popular first.
+     * Finds all attractions including hidden ones, most popular first.
      */
     @EntityGraph(attributePaths = "countries")
     List<Attraction> findAllByOrderByPopularityDesc();
 
     /**
-     * Finds the most popular attractions; countries are loaded lazily.
-     */
-    List<Attraction> findByOrderByPopularityDesc(Limit limit);
-
-    /**
-     * Finds all attractions located in a specific country.
+     * Finds visible attractions, most popular first.
      */
     @EntityGraph(attributePaths = "countries")
-    @Query("SELECT a FROM Attraction a WHERE :country MEMBER OF a.countries ORDER BY a.popularity DESC")
+    List<Attraction> findByHiddenFalseOrderByPopularityDesc();
+
+    /**
+     * Finds the most popular visible attractions; countries are loaded lazily.
+     */
+    List<Attraction> findByHiddenFalseOrderByPopularityDesc(Limit limit);
+
+    /**
+     * Finds visible attractions located in a specific country.
+     */
+    @EntityGraph(attributePaths = "countries")
+    @Query("SELECT a FROM Attraction a WHERE :country MEMBER OF a.countries AND a.hidden = false ORDER BY a.popularity DESC")
     List<Attraction> findByCountry(@Param("country") String country);
 
     /**
-     * Searches attractions by name (case-insensitive).
+     * Searches visible attractions by name (case-insensitive).
      */
     @EntityGraph(attributePaths = "countries")
-    @Query("SELECT a FROM Attraction a WHERE LOWER(a.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) ORDER BY a.popularity DESC")
+    @Query("SELECT a FROM Attraction a WHERE LOWER(a.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) AND a.hidden = false ORDER BY a.popularity DESC")
     List<Attraction> searchByName(@Param("searchTerm") String searchTerm);
 
     /**
-     * Gets all distinct countries.
+     * Gets all distinct countries of visible attractions.
      */
-    @Query("SELECT DISTINCT c FROM Attraction a JOIN a.countries c ORDER BY c")
+    @Query("SELECT DISTINCT c FROM Attraction a JOIN a.countries c WHERE a.hidden = false ORDER BY c")
     List<String> findAllDistinctCountries();
+
+    long countByHiddenTrue();
+
+    long countByMainImageIsNull();
+
+    /**
+     * Wikidata URIs of hidden attractions, skipped by the sync.
+     */
+    @Query("SELECT a.wikidataUri FROM Attraction a WHERE a.hidden = true")
+    List<String> findHiddenWikidataUris();
 }

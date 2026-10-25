@@ -29,7 +29,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin", "/admin/**", "/api/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
-                .formLogin(withDefaults())
+                .formLogin(form -> form.loginPage("/login").permitAll())
                 .httpBasic(withDefaults())
                 .logout(logout -> logout.logoutSuccessUrl("/"));
 

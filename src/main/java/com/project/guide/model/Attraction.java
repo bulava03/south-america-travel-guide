@@ -69,6 +69,12 @@ public class Attraction {
     
     @Column(length = 500)
     private String wikipediaUrl;
+
+    /**
+     * Hidden by the admin: not shown on the site and skipped by the sync.
+     */
+    @Column(nullable = false)
+    private boolean hidden;
     
     @OneToMany(mappedBy = "attraction", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

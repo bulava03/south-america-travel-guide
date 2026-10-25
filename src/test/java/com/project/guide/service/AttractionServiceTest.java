@@ -1,14 +1,19 @@
 package com.project.guide.service;
 
+import com.project.guide.dto.AdminAttractionDTO;
+import com.project.guide.dto.AdminFilter;
 import com.project.guide.dto.AttractionDTO;
 import com.project.guide.dto.AttractionDetailDTO;
+import com.project.guide.dto.SyncSummary;
 import com.project.guide.dto.WikidataAttraction;
 import com.project.guide.dto.WikidataFetchResult;
 import com.project.guide.exception.AttractionNotFoundException;
 import com.project.guide.model.Attraction;
 import com.project.guide.model.AttractionImage;
+import com.project.guide.model.CountrySync;
 import com.project.guide.repository.AttractionRepository;
 import com.project.guide.repository.AttractionImageRepository;
+import com.project.guide.repository.CountrySyncRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +25,7 @@ import org.springframework.data.domain.Limit;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -30,27 +36,24 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AttractionServiceTest {
-    
+
     @Mock
     private AttractionRepository attractionRepository;
-    
+
     @Mock
     private AttractionImageRepository imageRepository;
-    
+
     @Mock
-    private WikidataService wikidataService;
+    private CountrySyncRepository countrySyncRepository;
 
     @Mock
     private WikipediaService wikipediaService;
-    
-    @Mock
-    private PhotoService photoService;
 
     @InjectMocks
     private AttractionService attractionService;
-    
+
     private Attraction testAttraction;
-    
+
     @BeforeEach
     void setUp() {
         testAttraction = Attraction.builder()
@@ -66,7 +69,7 @@ class AttractionServiceTest {
                 .images(new ArrayList<>())
                 .build();
     }
-    
+
     @Test
     void testFindAttractionsSearchTakesPrecedenceOverCountry() {
         when(attractionRepository.searchByName("Machu")).thenReturn(List.of(testAttraction));
@@ -81,7 +84,7 @@ class AttractionServiceTest {
     @Test
     void testFindAttractionsByCountryOrAll() {
         when(attractionRepository.findByCountry("Peru")).thenReturn(List.of(testAttraction));
-        when(attractionRepository.findAllByOrderByPopularityDesc()).thenReturn(List.of());
+        when(attractionRepository.findByHiddenFalseOrderByPopularityDesc()).thenReturn(List.of());
 
         assertEquals(List.of("Peru"), attractionService.findAttractions("Peru", "").get(0).getCountries());
         assertEquals(List.of(), attractionService.findAttractions(null, null));
@@ -89,7 +92,7 @@ class AttractionServiceTest {
 
     @Test
     void testFindMostVisited() {
-        when(attractionRepository.findByOrderByPopularityDesc(Limit.of(4))).thenReturn(List.of(testAttraction));
+        when(attractionRepository.findByHiddenFalseOrderByPopularityDesc(Limit.of(4))).thenReturn(List.of(testAttraction));
 
         assertEquals("Machu Picchu", attractionService.findMostVisited(4).get(0).getName());
     }
@@ -116,6 +119,35 @@ class AttractionServiceTest {
     }
 
     @Test
+    void testHiddenAttractionIsNotFound() {
+        testAttraction.setHidden(true);
+        when(attractionRepository.findById(1L)).thenReturn(Optional.of(testAttraction));
+
+        assertThrows(AttractionNotFoundException.class, () -> attractionService.getAttractionDetails(1L));
+    }
+
+    @Test
+    void testSetHidden() {
+        when(attractionRepository.findById(1L)).thenReturn(Optional.of(testAttraction));
+
+        attractionService.setHidden(1L, true);
+
+        assertTrue(testAttraction.isHidden());
+    }
+
+    @Test
+    void testFindForAdminIncludesHiddenAndCombinesFilters() {
+        Attraction hidden = attraction(2L, "Q2", "Colón Theater", Set.of("Argentina"));
+        hidden.setHidden(true);
+        Attraction visible = attraction(3L, "Q3", "Perito Moreno Glacier", Set.of("Argentina", "Chile"));
+        when(attractionRepository.findAllByOrderByPopularityDesc()).thenReturn(List.of(testAttraction, hidden, visible));
+
+        assertEquals(List.of("Colón Theater"), names(attractionService.findForAdmin(null, "Argentina", AdminFilter.HIDDEN)));
+        assertEquals(List.of("Perito Moreno Glacier"), names(attractionService.findForAdmin(" moreno", null, AdminFilter.ALL)));
+        assertEquals(3, attractionService.findForAdmin("", "", AdminFilter.ALL).size());
+    }
+
+    @Test
     void testFindMoreInCountryExcludesTheAttractionItself() {
         Attraction titicaca = Attraction.builder().id(2L).name("Titicaca")
                 .countries(new TreeSet<>(Set.of("Bolivia", "Peru"))).images(new ArrayList<>()).build();
@@ -128,23 +160,24 @@ class AttractionServiceTest {
     }
 
     @Test
-    void testSyncCreatesNewAttraction() {
+    void testSaveCreatesNewAttraction() {
         // Arrange
         WikidataAttraction iguazu = wikidataAttraction("http://www.wikidata.org/entity/Q36332", "Iguazu Falls",
                 List.of("http://example.com/a.jpg", "http://example.com/b.jpg"));
         iguazu.getCountries().addAll(List.of("Argentina", "Brazil"));
-        when(wikidataService.fetchAttractions()).thenReturn(new WikidataFetchResult(List.of(iguazu), List.of()));
         when(attractionRepository.findByWikidataUri(any())).thenReturn(Optional.empty());
         when(attractionRepository.findAll()).thenReturn(List.of());
 
         // Act
-        attractionService.syncWithWikidata();
+        SyncSummary summary = attractionService.saveSyncResult(
+                result(List.of(iguazu), Map.of("Argentina", 1, "Brazil", 1), Map.of()));
 
         // Assert
         ArgumentCaptor<Attraction> saved = ArgumentCaptor.forClass(Attraction.class);
         verify(attractionRepository).save(saved.capture());
         Attraction attraction = saved.getValue();
 
+        assertEquals(new SyncSummary(1, 1, 0), summary);
         assertNull(attraction.getId());
         assertEquals("http://www.wikidata.org/entity/Q36332", attraction.getWikidataUri());
         assertEquals("Iguazu Falls", attraction.getName());
@@ -160,22 +193,22 @@ class AttractionServiceTest {
     }
 
     @Test
-    void testSyncUpdatesExistingAttractionInsteadOfRecreating() {
+    void testSaveUpdatesExistingAttractionInsteadOfRecreating() {
         // Arrange
         testAttraction.addImage(AttractionImage.builder().imageUrl("http://example.com/old.jpg").build());
         WikidataAttraction updated = wikidataAttraction(testAttraction.getWikidataUri(), "Machu Picchu (updated)",
                 List.of("http://example.com/new.jpg"));
         updated.getCountries().add("Peru");
-        when(wikidataService.fetchAttractions()).thenReturn(new WikidataFetchResult(List.of(updated), List.of()));
         when(attractionRepository.findByWikidataUri(testAttraction.getWikidataUri()))
                 .thenReturn(Optional.of(testAttraction));
         when(attractionRepository.findAll()).thenReturn(List.of(testAttraction));
 
         // Act
-        attractionService.syncWithWikidata();
+        SyncSummary summary = attractionService.saveSyncResult(result(List.of(updated), Map.of("Peru", 1), Map.of()));
 
         // Assert
         verify(attractionRepository).save(testAttraction);
+        assertEquals(new SyncSummary(1, 0, 0), summary);
         assertEquals(1L, testAttraction.getId());
         assertEquals("Machu Picchu (updated)", testAttraction.getName());
         assertEquals(Set.of("Peru"), testAttraction.getCountries());
@@ -188,56 +221,111 @@ class AttractionServiceTest {
     }
 
     @Test
-    void testSyncRemovesAttractionsMissingInWikidata() {
+    void testSaveRemovesAttractionsMissingInWikidata() {
         // Arrange
-        Attraction outdated = Attraction.builder()
-                .id(2L)
-                .wikidataUri("http://www.wikidata.org/entity/Q1")
-                .name("Outdated")
-                .images(new ArrayList<>())
-                .build();
+        Attraction outdated = attraction(2L, "Q1", "Outdated", Set.of("Peru"));
         WikidataAttraction current = wikidataAttraction(testAttraction.getWikidataUri(), "Machu Picchu", List.of());
-        when(wikidataService.fetchAttractions()).thenReturn(new WikidataFetchResult(List.of(current), List.of()));
         when(attractionRepository.findByWikidataUri(testAttraction.getWikidataUri()))
                 .thenReturn(Optional.of(testAttraction));
         when(attractionRepository.findAll()).thenReturn(List.of(testAttraction, outdated));
 
         // Act
-        attractionService.syncWithWikidata();
+        SyncSummary summary = attractionService.saveSyncResult(result(List.of(current), Map.of("Peru", 1), Map.of()));
 
         // Assert
         verify(attractionRepository).deleteAll(List.of(outdated));
+        assertEquals(1, summary.removed());
     }
 
     @Test
-    void testSyncKeepsAttractionsWhenSomeCountriesFailed() {
+    void testSaveKeepsAttractionsOfFailedCountries() {
         // Arrange: Chile query failed, so Chilean attractions are missing in the result
+        Attraction chilean = attraction(2L, "Q2", "Torres del Paine National Park", Set.of("Chile"));
         WikidataAttraction current = wikidataAttraction(testAttraction.getWikidataUri(), "Machu Picchu", List.of());
-        when(wikidataService.fetchAttractions())
-                .thenReturn(new WikidataFetchResult(List.of(current), List.of("Chile")));
         when(attractionRepository.findByWikidataUri(testAttraction.getWikidataUri()))
                 .thenReturn(Optional.of(testAttraction));
+        when(attractionRepository.findAll()).thenReturn(List.of(testAttraction, chilean));
 
         // Act
-        attractionService.syncWithWikidata();
+        attractionService.saveSyncResult(result(List.of(current), Map.of("Peru", 1), Map.of("Chile", "timed out")));
 
         // Assert
         verify(attractionRepository).save(testAttraction);
-        verify(attractionRepository, never()).deleteAll(any());
+        verify(attractionRepository).deleteAll(List.of());
     }
 
     @Test
-    void testSyncKeepsDataWhenWikidataFails() {
-        // Arrange
-        when(wikidataService.fetchAttractions())
-                .thenThrow(new RuntimeException("Failed to fetch attractions from Wikidata"));
+    void testSaveOfOneCountryKeepsAttractionsSharedWithOtherCountries() {
+        // Arrange: only Brazil is synced and Iguazu Falls is no longer selected for it
+        Attraction iguazu = attraction(2L, "Q36332", "Iguazu Falls", Set.of("Argentina", "Brazil"));
+        Attraction brazilian = attraction(3L, "Q3", "Outdated", Set.of("Brazil"));
+        when(attractionRepository.findAll()).thenReturn(List.of(iguazu, brazilian));
 
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> attractionService.syncWithWikidata());
+        // Act
+        attractionService.saveSyncResult(result(List.of(), Map.of("Brazil", 0), Map.of()));
 
+        // Assert
+        verify(attractionRepository).deleteAll(List.of(brazilian));
+    }
+
+    @Test
+    void testSaveKeepsHiddenAttractions() {
+        // Arrange: hidden attractions are skipped by Wikidata queries, so they are never in the result
+        Attraction hidden = attraction(2L, "Q2", "Hidden", Set.of("Peru"));
+        hidden.setHidden(true);
+        when(attractionRepository.findAll()).thenReturn(List.of(hidden));
+
+        // Act
+        attractionService.saveSyncResult(result(List.of(), Map.of("Peru", 0), Map.of()));
+
+        // Assert
+        verify(attractionRepository).deleteAll(List.of());
+    }
+
+    @Test
+    void testSaveRecordsResultOfEveryCountry() {
+        when(attractionRepository.findAll()).thenReturn(List.of());
+
+        attractionService.saveSyncResult(result(List.of(), Map.of("Peru", 25), Map.of("Chile", "timed out")));
+
+        ArgumentCaptor<List<CountrySync>> saved = ArgumentCaptor.captor();
+        verify(countrySyncRepository).saveAll(saved.capture());
+        Map<String, CountrySync> byCountry = saved.getValue().stream()
+                .collect(java.util.stream.Collectors.toMap(CountrySync::getCountry, sync -> sync));
+        assertTrue(byCountry.get("Peru").isSucceeded());
+        assertEquals(25, byCountry.get("Peru").getPlaceCount());
+        assertFalse(byCountry.get("Chile").isSucceeded());
+        assertEquals("timed out", byCountry.get("Chile").getMessage());
+    }
+
+    @Test
+    void testSaveChangesNothingWhenAllCountriesFailed() {
+        SyncSummary summary = attractionService.saveSyncResult(result(List.of(), Map.of(), Map.of("Peru", "timed out")));
+
+        assertEquals(new SyncSummary(0, 0, 0), summary);
+        verify(countrySyncRepository).saveAll(any());
         verify(attractionRepository, never()).save(any());
         verify(attractionRepository, never()).deleteAll();
         verify(attractionRepository, never()).deleteAll(any());
+    }
+
+    private static WikidataFetchResult result(List<WikidataAttraction> attractions, Map<String, Integer> fetched,
+                                              Map<String, String> failed) {
+        return new WikidataFetchResult(attractions, fetched, failed);
+    }
+
+    private static Attraction attraction(Long id, String entityId, String name, Set<String> countries) {
+        return Attraction.builder()
+                .id(id)
+                .wikidataUri("http://www.wikidata.org/entity/" + entityId)
+                .name(name)
+                .countries(new TreeSet<>(countries))
+                .images(new ArrayList<>())
+                .build();
+    }
+
+    private static List<String> names(List<AdminAttractionDTO> rows) {
+        return rows.stream().map(row -> row.getCard().getName()).toList();
     }
 
     private WikidataAttraction wikidataAttraction(String uri, String name, List<String> images) {

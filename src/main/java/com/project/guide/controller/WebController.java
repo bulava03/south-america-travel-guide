@@ -1,13 +1,17 @@
 package com.project.guide.controller;
 
+import com.project.guide.dto.AdminFilter;
 import com.project.guide.dto.AttractionDetailDTO;
 import com.project.guide.service.AttractionService;
+import com.project.guide.service.WikidataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.security.Principal;
 
 /**
  * Web Controller for serving HTML pages.
@@ -19,6 +23,7 @@ public class WebController {
     private static final int MORE_IN_COUNTRY = 3;
 
     private final AttractionService attractionService;
+    private final WikidataService wikidataService;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -53,9 +58,29 @@ public class WebController {
         return "detail";
     }
 
+    /**
+     * Admin panel: statistics, sync (rendered by admin.js from /api/admin/sync) and all places.
+     */
     @GetMapping("/admin")
-    public String adminPanel(Model model) {
+    public String adminPanel(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String country,
+            @RequestParam(defaultValue = "ALL") AdminFilter show,
+            Principal principal,
+            Model model
+    ) {
         model.addAttribute("stats", attractionService.getStatistics());
+        model.addAttribute("places", attractionService.findForAdmin(search, country, show));
+        model.addAttribute("countries", wikidataService.countryNames());
+        model.addAttribute("searchTerm", search);
+        model.addAttribute("selectedCountry", country);
+        model.addAttribute("show", show.name());
+        model.addAttribute("username", principal.getName());
         return "admin";
+    }
+
+    @GetMapping("/login")
+    public String login() {
+        return "login";
     }
 }

@@ -4,6 +4,7 @@ import com.project.guide.config.WikidataProperties;
 import com.project.guide.config.WikidataProperties.AttractionType;
 import com.project.guide.dto.WikidataAttraction;
 import com.project.guide.dto.WikidataFetchResult;
+import com.project.guide.service.SyncListener.CountryStep;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
  * 2. SPARQL (sparql/candidates.rq) gets their types and popularity, the number of Wikipedia
  *    language editions; the most popular ones are selected, with a limit per type for variety;
  * 3. SPARQL (sparql/details.rq) gets details of the selected attractions.
+ * Attractions hidden by the admin are skipped before the selection, so the next popular ones take their places.
  */
 @Service
 @Slf4j
@@ -48,44 +50,71 @@ public class WikidataService {
                 .collect(Collectors.toMap(AttractionType::id, AttractionType::label, (a, b) -> a, LinkedHashMap::new));
     }
 
-    /**
-     * Fetches all countries. A failed country is retried, then skipped and reported in the result.
-     *
-     * @throws RuntimeException if all countries failed
-     */
-    public WikidataFetchResult fetchAttractions() {
-        Map<String, WikidataAttraction> attractions = new LinkedHashMap<>();
-        List<String> failedCountries = new ArrayList<>();
+    public List<String> countryNames() {
+        return properties.countries().values().stream().sorted().toList();
+    }
 
-        properties.countries().forEach((countryId, countryName) -> {
+    /**
+     * Fetches the given countries one by one. A failed country is retried, then skipped and
+     * reported in the result; if all of them failed, the result is empty.
+     *
+     * @param countryNames countries from wikidata.yml
+     * @param skippedUris  Wikidata URIs of attractions that must not be selected
+     */
+    public WikidataFetchResult fetchAttractions(Collection<String> countryNames, Set<String> skippedUris,
+                                                SyncListener listener) {
+        Map<String, String> idsByName = properties.countries().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+        Set<String> skippedIds = skippedUris.stream()
+                .map(uri -> uri.replace(ENTITY_PREFIX, ""))
+                .collect(Collectors.toSet());
+
+        Map<String, WikidataAttraction> attractions = new LinkedHashMap<>();
+        Map<String, Integer> fetched = new LinkedHashMap<>();
+        Map<String, String> failed = new LinkedHashMap<>();
+
+        for (String countryName : countryNames) {
+            String countryId = idsByName.get(countryName);
+            if (countryId == null) {
+                throw new IllegalArgumentException("Unknown country: " + countryName);
+            }
             try {
-                int fetched = withRetry(countryName, () -> fetchCountry(countryId, attractions));
-                log.info("Fetched {} attractions for {}", fetched, countryName);
+                int count = withRetry(countryName,
+                        () -> fetchCountry(countryId, countryName, skippedIds, attractions, listener));
+                log.info("Fetched {} attractions for {}", count, countryName);
+                fetched.put(countryName, count);
+                listener.countryDone(countryName, count);
             } catch (RuntimeException e) {
                 log.error("Error fetching attractions for {} from Wikidata", countryName, e);
-                failedCountries.add(countryName);
+                failed.put(countryName, describe(e));
+                listener.countryFailed(countryName, describe(e));
             }
-        });
-
-        if (failedCountries.size() == properties.countries().size()) {
-            throw new RuntimeException("Failed to fetch attractions from Wikidata");
         }
-        log.info("Fetched {} attractions, failed countries: {}", attractions.size(), failedCountries);
-        return new WikidataFetchResult(new ArrayList<>(attractions.values()), failedCountries);
+
+        log.info("Fetched {} attractions, failed countries: {}", attractions.size(), failed.keySet());
+        return new WikidataFetchResult(new ArrayList<>(attractions.values()), fetched, failed);
     }
 
     /**
      * @return number of selected attractions
      */
-    private int fetchCountry(String countryId, Map<String, WikidataAttraction> attractions) {
+    private int fetchCountry(String countryId, String countryName, Set<String> skippedIds,
+                             Map<String, WikidataAttraction> attractions, SyncListener listener) {
+        listener.countryStep(countryName, CountryStep.SEARCH);
         List<String> candidates = client.search(searchQuery(countryId));
-        List<String> selected = candidates.isEmpty() ? List.of() : client.select(render(candidatesQuery, candidates),
-                results -> selectTopCandidates(results, properties.perCountryLimit(), properties.maxPerType()));
+        if (candidates.isEmpty()) {
+            return 0;
+        }
+
+        listener.countryStep(countryName, CountryStep.CANDIDATES);
+        List<String> selected = client.select(render(candidatesQuery, candidates),
+                results -> selectTopCandidates(results, properties.perCountryLimit(), properties.maxPerType(), skippedIds));
         if (selected.isEmpty()) {
             return 0;
         }
 
         // Merged only after the whole country succeeded, so a failed attempt leaves no partial data
+        listener.countryStep(countryName, CountryStep.DETAILS);
         client.select(render(detailsQuery, selected), this::parseDetails)
                 .forEach((uri, attraction) -> attractions.merge(uri, attraction, WikidataAttraction::mergeWith));
         return selected.size();
@@ -101,12 +130,12 @@ public class WikidataService {
     }
 
     /**
-     * Selects the most popular candidates, at most {@code maxPerType} with the same type label.
-     * Rows contain ?item, ?type and ?sitelinks, one row per type.
+     * Selects the most popular candidates, at most {@code maxPerType} with the same type label;
+     * skipped ids are not counted. Rows contain ?item, ?type and ?sitelinks, one row per type.
      *
      * @return Wikidata ids, most popular first
      */
-    List<String> selectTopCandidates(ResultSet results, int limit, int maxPerType) {
+    List<String> selectTopCandidates(ResultSet results, int limit, int maxPerType, Set<String> skippedIds) {
         Map<String, Set<String>> typesById = new HashMap<>();
         Map<String, Integer> popularityById = new HashMap<>();
         results.forEachRemaining(row -> {
@@ -117,6 +146,7 @@ public class WikidataService {
 
         Map<String, Integer> countByType = new HashMap<>();
         return popularityById.keySet().stream()
+                .filter(id -> !skippedIds.contains(id))
                 .sorted(Comparator.comparing((String id) -> popularityById.get(id)).reversed()
                         .thenComparing(Comparator.naturalOrder()))
                 .filter(id -> countByType.merge(primaryType(typesById.get(id)), 1, Integer::sum) <= maxPerType)
@@ -200,6 +230,16 @@ public class WikidataService {
                 log.warn("Attempt {} for {} failed: {}, retrying", attempt, countryName, e.getMessage());
             }
         }
+    }
+
+    /**
+     * Short error for the admin panel, e.g. "HttpTimeoutException: request timed out".
+     */
+    private static String describe(RuntimeException e) {
+        Throwable cause = e.getCause() != null ? e.getCause() : e;
+        String message = cause.getMessage() == null ? "" : ": " + cause.getMessage();
+        String text = cause.getClass().getSimpleName() + message;
+        return text.length() > 500 ? text.substring(0, 500) : text;
     }
 
     private static String toValues(Collection<String> ids) {

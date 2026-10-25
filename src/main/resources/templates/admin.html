@@ -1,103 +1,188 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="_csrf" th:content="${_csrf.token}">
-    <meta name="_csrf_header" th:content="${_csrf.headerName}">
-    <title>Admin Panel - South America Guide</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments :: pageHead('Admin - South America Guide')}"></head>
 <body>
-<header>
+<header class="site-header">
     <div class="container">
-        <a href="/" style="text-decoration: none; color: inherit; cursor: pointer;">
-            <h1>🌎 South America Guide - Admin</h1>
-            <p class="subtitle">Administrative Panel</p>
-        </a>
-    </div>
-</header>
-
-<main class="container">
-    <div class="admin-container">
-        <!-- Statistics -->
-        <div class="stats-section">
-            <h2>📊 Statistics</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" th:text="${stats.totalAttractions}">0</div>
-                    <div class="stat-label">Total Attractions</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" th:text="${stats.totalImages}">0</div>
-                    <div class="stat-label">Total Images</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" th:text="${stats.countryCount}">0</div>
-                    <div class="stat-label">Countries</div>
-                </div>
-            </div>
+        <div class="admin-brand">
+            <a th:replace="~{fragments :: logo}"></a>
+            <span class="admin-badge">Admin</span>
         </div>
-
-        <!-- Countries List -->
-        <div class="countries-section">
-            <h3>Countries in Database:</h3>
-            <div class="country-tags">
-                <span class="country-tag" th:each="country : ${stats.countries}" th:text="${country}">Country</span>
-            </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="actions-section">
-            <h2>🔧 Actions</h2>
-
-            <div class="action-card">
-                <h3>Synchronize with Wikidata</h3>
-                <p>Fetch latest data from Wikidata and update the database. This may take 30-60 seconds.</p>
-                <button onclick="syncWithWikidata()" class="btn-action btn-primary">🔄 Sync Now</button>
-                <div id="sync-status" class="action-status"></div>
-            </div>
-
+        <div class="admin-nav">
+            <a class="navlink" th:href="@{/places}">Places</a>
+            <a class="navlink" th:href="@{/swagger-ui.html}">API</a>
+            <span class="admin-user" th:text="${username}">admin</span>
             <form th:action="@{/logout}" method="post">
-                <button type="submit" class="btn-action">🚪 Log out</button>
+                <button class="btn btn-line btn-small" type="submit">Log out</button>
             </form>
         </div>
     </div>
+</header>
+
+<main class="page-main container">
+    <div class="page-title">
+        <div>
+            <h1>Admin</h1>
+            <p>Update places from Wikidata and hide the ones that should not be on the site.</p>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <span class="stat-label">Places</span>
+            <span class="stat-value" th:text="${stats.totalAttractions}">300</span>
+            <span class="stat-note" th:text="'on the site: ' + ${stats.visibleAttractions}">on the site: 297</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Photos</span>
+            <span class="stat-value" th:text="${stats.totalImages}">1184</span>
+            <span class="stat-note">checked on Commons</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Countries</span>
+            <span class="stat-value" th:text="${stats.countryCount}">12</span>
+            <span class="stat-note" th:text="${stats.syncedCountryCount == 0} ? 'no sync yet'
+                    : (${#lists.isEmpty(stats.failedCountries)} ? 'all fetched last time'
+                    : ${#lists.size(stats.failedCountries)} + ' failed last time')">all fetched last time</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Hidden</span>
+            <span class="stat-value" th:text="${stats.hiddenAttractions}">3</span>
+            <span class="stat-note">stay hidden after sync</span>
+        </div>
+    </div>
+
+    <!-- Filled by admin.js from /api/admin/sync -->
+    <section class="panel" id="sync" th:data-status-url="@{/api/admin/sync}"
+             th:attr="data-csrf-header=${_csrf.headerName},data-csrf-token=${_csrf.token}">
+        <div class="panel-head">
+            <div>
+                <h2>Wikidata sync</h2>
+                <p>Fetches the most popular places of every country and checks their photos on Commons.
+                    Takes about a minute. Hidden places stay hidden and are replaced by the next popular ones.</p>
+            </div>
+            <button class="btn btn-sun" type="button" id="sync-all" disabled>
+                <svg th:replace="~{fragments :: refresh}"></svg>
+                Sync now
+            </button>
+        </div>
+        <div id="sync-state" aria-live="polite"></div>
+        <div class="sync-countries" id="sync-countries"></div>
+        <p class="panel-note">Each country can be synced again on its own. Hidden places are skipped:
+            the next popular places of the country take their slots.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="places-title">
+        <div class="panel-head">
+            <h2 id="places-title">Places</h2>
+            <form class="search" role="search" th:action="@{/admin}" method="get">
+                <input type="hidden" name="show" th:value="${show}">
+                <label for="search" class="visually-hidden">Search places</label>
+                <input id="search" type="search" name="search" placeholder="Search a place…" th:value="${searchTerm}">
+                <label for="country" class="visually-hidden">Country</label>
+                <select id="country" name="country" onchange="this.form.submit()">
+                    <option value="">All countries</option>
+                    <option th:each="c : ${countries}" th:value="${c}" th:text="${c}"
+                            th:selected="${c == selectedCountry}">Argentina</option>
+                </select>
+            </form>
+        </div>
+
+        <div class="chips" role="group" aria-label="Show">
+            <a class="chip chip-small" th:classappend="${show == 'ALL'} ? 'active'"
+               th:href="@{/admin(search=${searchTerm}, country=${selectedCountry})}"
+               th:text="'All · ' + ${stats.totalAttractions}">All · 300</a>
+            <a class="chip chip-small" th:classappend="${show == 'VISIBLE'} ? 'active'"
+               th:href="@{/admin(show='VISIBLE', search=${searchTerm}, country=${selectedCountry})}"
+               th:text="'Visible · ' + ${stats.visibleAttractions}">Visible · 297</a>
+            <a class="chip chip-small" th:classappend="${show == 'HIDDEN'} ? 'active'"
+               th:href="@{/admin(show='HIDDEN', search=${searchTerm}, country=${selectedCountry})}"
+               th:text="'Hidden · ' + ${stats.hiddenAttractions}">Hidden · 3</a>
+            <a class="chip chip-small" th:classappend="${show == 'NO_PHOTO'} ? 'active'"
+               th:href="@{/admin(show='NO_PHOTO', search=${searchTerm}, country=${selectedCountry})}"
+               th:text="'No photo · ' + ${stats.withoutPhoto}">No photo · 18</a>
+        </div>
+
+        <div class="table-wrap">
+            <table class="places-table" th:unless="${#lists.isEmpty(places)}">
+                <thead>
+                <tr>
+                    <th>Place</th>
+                    <th>Countries</th>
+                    <th title="Number of Wikipedia languages">Popularity</th>
+                    <th>Photo</th>
+                    <th>Status</th>
+                    <th><span class="visually-hidden">Action</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${places}" th:with="a=${p.card}" th:classappend="${p.hidden} ? 'row-hidden'">
+                    <td>
+                        <div class="place-cell">
+                            <!-- The same photo treatment as on the site; hover shows the card and the whole photo -->
+                            <div class="thumb-wrap">
+                                <div class="thumb dim" tabindex="0" role="button" aria-label="Preview the photo">
+                                    <div th:replace="~{fragments :: plate(${a})}"></div>
+                                </div>
+                                <div class="preview">
+                                    <div class="preview-part">
+                                        <span class="preview-label">On the site</span>
+                                        <div class="card preview-card">
+                                            <div th:replace="~{fragments :: plate(${a})}"></div>
+                                            <div class="card-body">
+                                                <div class="card-text">
+                                                    <span class="card-name" th:text="${a.name}">Machu Picchu</span>
+                                                    <span class="card-countries" th:text="${#strings.listJoin(a.countries, ', ')}">Peru</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="preview-part" th:if="${a.mainImage != null}">
+                                        <span class="preview-label">Whole photo</span>
+                                        <div class="preview-full"><img th:src="${p.photo}" th:alt="${a.name}" loading="lazy"></div>
+                                        <span class="preview-note">
+                                            <th:block th:if="${p.photoWidth != null}"
+                                                      th:text="${p.photoWidth} + ' × ' + ${p.photoHeight} + ' px · '">5184 × 3456 px · </th:block>
+                                            <a th:href="${p.photoPage}">Open on Commons</a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dim place-name">
+                                <a th:unless="${p.hidden}" th:href="@{/attraction/{id}(id=${a.id})}" th:text="${a.name}">Machu Picchu</a>
+                                <span th:if="${p.hidden}" th:text="${a.name}">Colón Theater</span>
+                                <span class="place-type" th:text="${a.type}">archaeological site</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="dim" th:text="${#strings.listJoin(a.countries, ', ')}">Peru</td>
+                    <td class="dim popularity" th:text="${p.popularity}">141</td>
+                    <td class="dim" th:switch="${a.photoLayout.name()}">
+                        <th:block th:case="'COVER'">Cover</th:block>
+                        <th:block th:case="'FIT'">Whole photo</th:block>
+                        <th:block th:case="'PRINT'">Print (small)</th:block>
+                        <th:block th:case="*">No photo</th:block>
+                    </td>
+                    <td><span class="status" th:classappend="${p.hidden} ? 'status-hidden'"
+                              th:text="${p.hidden} ? 'Hidden' : 'Visible'">Visible</span></td>
+                    <td class="row-action">
+                        <button class="btn btn-line btn-small" type="button" data-hide
+                                th:attr="data-url=@{/api/admin/attractions/{id}(id=${a.id})},data-hidden=${!p.hidden}"
+                                th:text="${p.hidden} ? 'Show' : 'Hide'">Hide</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty" th:if="${#lists.isEmpty(places)}">
+            <h2>Nothing found</h2>
+            <p>Try another name or another filter.</p>
+            <a class="btn btn-sun" th:href="@{/admin}">All places</a>
+        </div>
+    </section>
 </main>
 
-<footer>
-    <div class="container">
-        <p>&copy; 2025 South America Guide. Data from <a href="https://www.wikidata.org" target="_blank">Wikidata</a></p>
-    </div>
-</footer>
-
-<script>
-    function syncWithWikidata() {
-        const statusDiv = document.getElementById('sync-status');
-        statusDiv.innerHTML = '<p class="status-loading">⏳ Syncing with Wikidata...</p>';
-
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-
-        fetch('/api/admin/sync', {
-            method: 'POST',
-            headers: { [csrfHeader]: csrfToken }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                statusDiv.innerHTML = '<p class="status-success">✅ ' + data.message + '</p>';
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-            } else {
-                statusDiv.innerHTML = '<p class="status-error">❌ Error: ' + data.message + '</p>';
-            }
-        })
-        .catch(error => {
-            statusDiv.innerHTML = '<p class="status-error">❌ Network error: ' + error.message + '</p>';
-        });
-    }
-</script>
+<script th:src="@{/js/admin.js}"></script>
 </body>
 </html>

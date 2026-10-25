@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: pageHead('Sign in - South America Guide')}"></head>
+<body class="login-page">
+<header th:replace="~{fragments :: siteHeader('')}"></header>
+
+<main class="login-main">
+    <form class="login-card" th:action="@{/login}" method="post">
+        <div class="login-title">
+            <h1>Sign in</h1>
+            <p>Admin panel of the guide</p>
+        </div>
+
+        <div class="notice notice-error" th:if="${param.error}">Wrong username or password.</div>
+
+        <div class="fields">
+            <label class="field"><span>Username</span>
+                <input name="username" autocomplete="username" required autofocus></label>
+            <label class="field"><span>Password</span>
+                <input name="password" type="password" autocomplete="current-password" required></label>
+        </div>
+        <button class="btn btn-sun login-submit" type="submit">Sign in</button>
+        <a class="login-back" th:href="@{/}">Back to the guide</a>
+    </form>
+</main>
+</body>
+</html>
