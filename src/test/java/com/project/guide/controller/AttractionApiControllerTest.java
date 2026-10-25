@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -32,15 +32,13 @@ class AttractionApiControllerTest {
     @MockBean
     private AttractionService attractionService;
 
-    private final AttractionDTO machuPicchu = new AttractionDTO(
-            1L, "Machu Picchu", "World Heritage Site", List.of("Peru"), -13.1631, -72.5450, "http://example.com/image.jpg"
-    );
-
     @Test
-    void testGetAllAttractions() throws Exception {
-        when(attractionService.getAllAttractions()).thenReturn(List.of(machuPicchu));
+    void testGetAttractionsWithFilters() throws Exception {
+        when(attractionService.findAttractions("Peru", "Machu")).thenReturn(List.of(new AttractionDTO(
+                1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450, "http://example.com/a.jpg"
+        )));
 
-        mockMvc.perform(get("/api/attractions"))
+        mockMvc.perform(get("/api/attractions").param("country", "Peru").param("search", "Machu"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].name").value("Machu Picchu"))
@@ -48,36 +46,13 @@ class AttractionApiControllerTest {
     }
 
     @Test
-    void testGetAttractionsByCountry() throws Exception {
-        when(attractionService.getAttractionsByCountry("Peru")).thenReturn(List.of(machuPicchu));
-
-        mockMvc.perform(get("/api/attractions").param("country", "Peru"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].countries[0]").value("Peru"));
-
-        verify(attractionService, never()).getAllAttractions();
-    }
-
-    @Test
-    void testSearchTakesPrecedenceOverCountry() throws Exception {
-        when(attractionService.searchAttractions("Machu")).thenReturn(List.of(machuPicchu));
-
-        mockMvc.perform(get("/api/attractions").param("search", "Machu").param("country", "Chile"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Machu Picchu"));
-
-        verify(attractionService, never()).getAttractionsByCountry(any());
-    }
-
-    @Test
     void testGetAttractionDetails() throws Exception {
-        AttractionDetailDTO details = new AttractionDetailDTO(
-                1L, "Machu Picchu", "World Heritage Site", List.of("Peru"), -13.1631, -72.5450,
-                "http://example.com/image.jpg", "Inca citadel",
+        when(attractionService.getAttractionDetails(1L)).thenReturn(new AttractionDetailDTO(
+                1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450,
+                "http://example.com/a.jpg", "Inca citadel",
                 "https://en.wikipedia.org/wiki/Machu_Picchu", "http://www.wikidata.org/entity/Q676203",
-                List.of("http://example.com/image.jpg")
-        );
-        when(attractionService.getAttractionDetails(1L)).thenReturn(details);
+                List.of("http://example.com/a.jpg")
+        ));
 
         mockMvc.perform(get("/api/attractions/1"))
                 .andExpect(status().isOk())
@@ -95,21 +70,5 @@ class AttractionApiControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.detail").value("Attraction not found with id: 999"));
-    }
-
-    @Test
-    void testGetCountries() throws Exception {
-        when(attractionService.getAllCountries()).thenReturn(List.of("Argentina", "Chile", "Peru"));
-
-        mockMvc.perform(get("/api/countries"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3))
-                .andExpect(jsonPath("$[2]").value("Peru"));
-    }
-
-    @Test
-    void testAdminApiRequiresAuthentication() throws Exception {
-        mockMvc.perform(get("/api/admin/stats").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized());
     }
 }

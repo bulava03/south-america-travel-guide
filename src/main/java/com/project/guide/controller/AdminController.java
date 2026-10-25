@@ -9,52 +9,30 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 /**
- * Admin Controller for administrative operations.
+ * Admin API, available to the ADMIN role only (see SecurityConfig).
  */
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 @Slf4j
 public class AdminController {
-    
+
     private final AttractionService attractionService;
-    
-    /**
-     * Triggers synchronization with Wikidata.
-     * POST /api/admin/sync
-     */
+
     @PostMapping("/sync")
-    public ResponseEntity<Map<String, String>> syncWithWikidata() {
-        try {
-            log.info("Admin triggered Wikidata sync");
-            attractionService.syncWithWikidata();
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "message", "Successfully synchronized with Wikidata"
-            ));
-        } catch (Exception e) {
-            log.error("Error during Wikidata sync", e);
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "status", "error",
-                    "message", "Failed to sync: " + e.getMessage()
-            ));
-        }
+    public Map<String, String> syncWithWikidata() {
+        attractionService.syncWithWikidata();
+        return Map.of("status", "success", "message", "Successfully synchronized with Wikidata");
     }
-    
-    /**
-     * Gets application statistics.
-     * GET /api/admin/stats
-     */
+
     @GetMapping("/stats")
-    public ResponseEntity<Map<String, Object>> getStatistics() {
-        try {
-            Map<String, Object> stats = attractionService.getStatistics();
-            return ResponseEntity.ok(stats);
-        } catch (Exception e) {
-            log.error("Error getting statistics", e);
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "error", "Failed to get statistics: " + e.getMessage()
-            ));
-        }
+    public Map<String, Object> getStatistics() {
+        return attractionService.getStatistics();
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleError(RuntimeException e) {
+        log.error("Admin operation failed", e);
+        return ResponseEntity.internalServerError().body(Map.of("status", "error", "message", e.getMessage()));
     }
 }

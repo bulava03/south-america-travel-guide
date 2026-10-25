@@ -1,0 +1,67 @@
+# Wikidata sources, attraction catalog and sync limits (bound to WikidataProperties)
+wikidata:
+  sparql-endpoint: https://query.wikidata.org/sparql
+  search-endpoint: https://www.wikidata.org/w/api.php
+  # Per request; the query service itself stops queries after 60 s
+  timeout: 60s
+  # Attempts per country: the query service sometimes answers 502/504 under load
+  attempts: 2
+  # Candidates per country returned by Wikidata search (max 500)
+  search-limit: 500
+  # Attractions per country, most popular first, and at most max-per-type of one type
+  per-country-limit: ${SYNC_PER_COUNTRY_LIMIT:25}
+  max-per-type: ${SYNC_MAX_PER_TYPE:4}
+
+  countries:
+    Q414: Argentina
+    Q155: Brazil
+    Q750: Bolivia
+    Q298: Chile
+    Q739: Colombia
+    Q736: Ecuador
+    Q734: Guyana
+    Q733: Paraguay
+    Q419: Peru
+    Q730: Suriname
+    Q77: Uruguay
+    Q717: Venezuela
+
+  # In order of priority: an attraction with several types is shown with the first one.
+  # Types with the same label share the max-per-type limit.
+  types:
+    # Nature
+    - { id: Q34038, label: waterfall }
+    - { id: Q35666, label: glacier }
+    - { id: Q935277, label: salt flat }
+    - { id: Q23397, label: lake }
+    - { id: Q8072, label: volcano }
+    - { id: Q169358, label: volcano }        # stratovolcano
+    - { id: Q8502, label: mountain }
+    - { id: Q150784, label: canyon }
+    - { id: Q39816, label: valley }
+    - { id: Q8514, label: desert }
+    - { id: Q33837, label: archipelago }
+    - { id: Q23442, label: island }
+    - { id: Q40080, label: beach }
+    - { id: Q46169, label: national park }
+    # Culture
+    - { id: Q839954, label: archaeological site }
+    - { id: Q2977, label: cathedral }
+    - { id: Q153562, label: opera house }
+    - { id: Q16560, label: palace }
+    - { id: Q57821, label: fortress }
+    - { id: Q16970, label: church }
+    - { id: Q33506, label: museum }
+    - { id: Q4989906, label: monument }
+    - { id: Q174782, label: square }
+    - { id: Q1081138, label: historic site }
+    - { id: Q9259, label: World Heritage Site }
+    - { id: Q570116, label: tourist attraction }
+
+  # Get into results via "historic site" but are not attractions
+  excluded-types:
+    - Q476028   # association football club
+    - Q847017   # sports club
+    - Q483110   # stadium
+    - Q43229    # organization
+    - Q31855    # research institute

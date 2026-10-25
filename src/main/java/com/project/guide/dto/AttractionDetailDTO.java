@@ -1,5 +1,7 @@
 package com.project.guide.dto;
 
+import com.project.guide.model.Attraction;
+import com.project.guide.model.AttractionImage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,4 +26,20 @@ public class AttractionDetailDTO {
     private String wikipediaUrl;
     private String wikidataUri;
     private List<String> additionalImages;
+
+    public static AttractionDetailDTO from(Attraction attraction) {
+        return new AttractionDetailDTO(
+                attraction.getId(),
+                attraction.getName(),
+                attraction.getType(),
+                attraction.getCountries().stream().sorted().toList(),
+                attraction.getLatitude(),
+                attraction.getLongitude(),
+                attraction.getMainImage(),
+                attraction.getDescription(),
+                attraction.getWikipediaUrl(),
+                attraction.getWikidataUri(),
+                attraction.getImages().stream().map(AttractionImage::getImageUrl).toList()
+        );
+    }
 }

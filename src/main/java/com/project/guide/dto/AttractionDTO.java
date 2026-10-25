@@ -1,5 +1,6 @@
 package com.project.guide.dto;
 
+import com.project.guide.model.Attraction;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,4 +21,16 @@ public class AttractionDTO {
     private Double latitude;
     private Double longitude;
     private String mainImage;
+
+    public static AttractionDTO from(Attraction attraction) {
+        return new AttractionDTO(
+                attraction.getId(),
+                attraction.getName(),
+                attraction.getType(),
+                attraction.getCountries().stream().sorted().toList(),
+                attraction.getLatitude(),
+                attraction.getLongitude(),
+                attraction.getMainImage()
+        );
+    }
 }

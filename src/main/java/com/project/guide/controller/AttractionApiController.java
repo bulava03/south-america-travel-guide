@@ -35,13 +35,7 @@ public class AttractionApiController {
             @Parameter(description = "Exact country name, e.g. Peru") @RequestParam(required = false) String country,
             @Parameter(description = "Part of the attraction name, case-insensitive") @RequestParam(required = false) String search
     ) {
-        if (search != null && !search.isEmpty()) {
-            return attractionService.searchAttractions(search);
-        }
-        if (country != null && !country.isEmpty()) {
-            return attractionService.getAttractionsByCountry(country);
-        }
-        return attractionService.getAllAttractions();
+        return attractionService.findAttractions(country, search);
     }
 
     /**

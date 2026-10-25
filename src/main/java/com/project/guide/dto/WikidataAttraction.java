@@ -9,7 +9,6 @@ import java.util.Set;
 
 /**
  * Attraction data fetched from Wikidata.
- * One attraction may come in several result rows (per country, type and image), they are merged here.
  */
 @Data
 public class WikidataAttraction {
@@ -22,4 +21,13 @@ public class WikidataAttraction {
     private List<String> images = new ArrayList<>();
     private String wikipediaUrl;
     private int popularity;
+
+    /**
+     * Combines the same attraction returned for two countries (e.g. Iguazu Falls).
+     */
+    public WikidataAttraction mergeWith(WikidataAttraction other) {
+        countries.addAll(other.countries);
+        other.images.stream().filter(image -> !images.contains(image)).forEach(images::add);
+        return this;
+    }
 }

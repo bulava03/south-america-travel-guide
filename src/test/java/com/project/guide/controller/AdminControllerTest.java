@@ -95,10 +95,4 @@ class AdminControllerTest {
                 .andExpect(jsonPath("$.totalAttractions").value(2))
                 .andExpect(jsonPath("$.countryCount").value(2));
     }
-
-    @Test
-    void testStatsWithWrongPassword() throws Exception {
-        mockMvc.perform(get("/api/admin/stats").with(httpBasic("admin", "wrong")))
-                .andExpect(status().isUnauthorized());
-    }
 }

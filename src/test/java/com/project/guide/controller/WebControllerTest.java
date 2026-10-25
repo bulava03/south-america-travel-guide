@@ -18,10 +18,13 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Pages are rendered with the real Thymeleaf templates.
+ */
 @WebMvcTest(
         controllers = WebController.class,
         properties = {"app.admin.username=admin", "app.admin.password=test"}
@@ -35,57 +38,30 @@ class WebControllerTest {
     @MockBean
     private AttractionService attractionService;
 
-    private final AttractionDTO machuPicchu = new AttractionDTO(
-            1L, "Machu Picchu", "World Heritage Site", List.of("Peru"), -13.1631, -72.5450, "http://example.com/image.jpg"
-    );
-
     @Test
-    void testHomePageListsAttractions() throws Exception {
-        when(attractionService.getAllAttractions()).thenReturn(List.of(machuPicchu));
-        when(attractionService.getAllCountries()).thenReturn(List.of("Peru"));
-
-        mockMvc.perform(get("/"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("index"))
-                .andExpect(model().attribute("attractions", List.of(machuPicchu)))
-                .andExpect(content().string(containsString("Machu Picchu")));
-    }
-
-    @Test
-    void testHomePageFiltersByCountry() throws Exception {
-        when(attractionService.getAttractionsByCountry("Peru")).thenReturn(List.of(machuPicchu));
+    void testHomePage() throws Exception {
+        when(attractionService.findAttractions("Peru", null)).thenReturn(List.of(new AttractionDTO(
+                1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450, "http://example.com/a.jpg"
+        )));
         when(attractionService.getAllCountries()).thenReturn(List.of("Chile", "Peru"));
 
         mockMvc.perform(get("/").param("country", "Peru"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("selectedCountry", "Peru"));
-
-        verify(attractionService, never()).getAllAttractions();
-    }
-
-    @Test
-    void testHomePageSearchesByName() throws Exception {
-        when(attractionService.searchAttractions("machu")).thenReturn(List.of(machuPicchu));
-        when(attractionService.getAllCountries()).thenReturn(List.of("Peru"));
-
-        mockMvc.perform(get("/").param("search", "machu"))
-                .andExpect(status().isOk())
-                .andExpect(model().attribute("searchTerm", "machu"));
+                .andExpect(model().attribute("selectedCountry", "Peru"))
+                .andExpect(content().string(containsString("Machu Picchu")));
     }
 
     @Test
     void testAttractionDetailsPage() throws Exception {
-        AttractionDetailDTO details = new AttractionDetailDTO(
-                1L, "Machu Picchu", "World Heritage Site", List.of("Peru"), -13.1631, -72.5450,
-                "http://example.com/image.jpg", "Inca citadel",
+        when(attractionService.getAttractionDetails(1L)).thenReturn(new AttractionDetailDTO(
+                1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450,
+                "http://example.com/a.jpg", "Inca citadel",
                 "https://en.wikipedia.org/wiki/Machu_Picchu", "http://www.wikidata.org/entity/Q676203",
-                List.of("http://example.com/image.jpg")
-        );
-        when(attractionService.getAttractionDetails(1L)).thenReturn(details);
+                List.of("http://example.com/a.jpg")
+        ));
 
         mockMvc.perform(get("/attraction/1"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("detail"))
                 .andExpect(content().string(containsString("Inca citadel")));
     }
 

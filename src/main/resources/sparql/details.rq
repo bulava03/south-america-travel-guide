@@ -1,0 +1,26 @@
+# Details of the selected attractions.
+# One attraction comes in a row for every combination of its types, countries and images.
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+SELECT ?item ?itemLabel ?type ?country ?coord ?image ?article ?sitelinks
+WHERE {
+  VALUES ?item { {{items}} }
+  VALUES ?type { {{types}} }
+
+  ?item wdt:P31 ?type;
+        wdt:P17 ?country;
+        wdt:P625 ?coord;
+        wdt:P18 ?image;
+        wikibase:sitelinks ?sitelinks.
+
+  ?article schema:about ?item;
+           schema:isPartOf <https://en.wikipedia.org/>.
+
+  # Label service is much faster than rdfs:label with language filters.
+  # Many items have only a multilingual ("mul") label instead of an English one.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en,mul". }
+}

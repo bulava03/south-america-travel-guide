@@ -1,5 +1,6 @@
 package com.project.guide.model;
 
+import com.project.guide.dto.WikidataAttraction;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -74,12 +75,24 @@ public class Attraction {
         images.add(image);
         image.setAttraction(this);
     }
-    
+
     /**
-     * Helper method to remove an image from this attraction.
+     * Replaces all fields fetched from Wikidata; the first image becomes the main one.
      */
-    public void removeImage(AttractionImage image) {
-        images.remove(image);
-        image.setAttraction(null);
+    public void updateFrom(WikidataAttraction data) {
+        wikidataUri = data.getUri();
+        name = data.getName();
+        type = data.getType();
+        latitude = data.getLatitude();
+        longitude = data.getLongitude();
+        wikipediaUrl = data.getWikipediaUrl();
+        popularity = data.getPopularity();
+
+        countries.clear();
+        countries.addAll(data.getCountries());
+
+        images.clear();
+        mainImage = data.getImages().isEmpty() ? null : data.getImages().get(0);
+        data.getImages().forEach(url -> addImage(AttractionImage.builder().imageUrl(url).build()));
     }
 }

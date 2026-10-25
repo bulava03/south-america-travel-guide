@@ -1,6 +1,5 @@
 package com.project.guide.controller;
 
-import com.project.guide.dto.AttractionDTO;
 import com.project.guide.dto.AttractionDetailDTO;
 import com.project.guide.service.AttractionService;
 import lombok.RequiredArgsConstructor;
@@ -9,8 +8,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.List;
 
 /**
  * Web Controller for serving HTML pages.
@@ -30,21 +27,10 @@ public class WebController {
             @RequestParam(required = false) String search,
             Model model
     ) {
-        List<AttractionDTO> attractions;
-        
-        if (search != null && !search.isEmpty()) {
-            attractions = attractionService.searchAttractions(search);
-            model.addAttribute("searchTerm", search);
-        } else if (country != null && !country.isEmpty()) {
-            attractions = attractionService.getAttractionsByCountry(country);
-            model.addAttribute("selectedCountry", country);
-        } else {
-            attractions = attractionService.getAllAttractions();
-        }
-        
-        model.addAttribute("attractions", attractions);
+        model.addAttribute("attractions", attractionService.findAttractions(country, search));
         model.addAttribute("countries", attractionService.getAllCountries());
-        
+        model.addAttribute("selectedCountry", country);
+        model.addAttribute("searchTerm", search);
         return "index";
     }
     

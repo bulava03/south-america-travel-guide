@@ -1,13 +1,19 @@
 package com.project.guide.service;
 
+import com.project.guide.config.WikidataProperties;
 import com.project.guide.dto.WikidataAttraction;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.riot.ResultSetMgr;
 import org.apache.jena.riot.resultset.ResultSetLang;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.bind.PropertySourcesPlaceholdersResolver;
+import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
+import org.springframework.boot.env.YamlPropertySourceLoader;
+import org.springframework.core.env.PropertySource;
+import org.springframework.core.io.ClassPathResource;
 
-import java.util.LinkedHashMap;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,13 +21,14 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests parsing of saved Wikidata SPARQL responses, without network access.
+ * Tests selection and parsing of saved Wikidata SPARQL responses, without network access.
+ * Uses the real catalog from wikidata.yml, since type priorities matter.
  */
 class WikidataServiceTest {
 
     private static final String ENTITY = "http://www.wikidata.org/entity/";
 
-    private final WikidataService wikidataService = new WikidataService(new RestTemplateBuilder());
+    private final WikidataService wikidataService = new WikidataService(null, loadProperties());
 
     @Test
     void testSelectTopCandidatesByPopularityWithLimitPerType() {
@@ -35,10 +42,10 @@ class WikidataServiceTest {
     void testVolcanoAndStratovolcanoShareTypeLimit() {
         // Q7 is a stratovolcano and Q8 a volcano: both are shown as "volcano"
         List<String> selected = wikidataService.selectTopCandidates(fixture("candidates.json"), 25, 1);
-        
+
         assertEquals(List.of("Q1", "Q2", "Q5", "Q7", "Q6"), selected);
     }
-    
+
     @Test
     void testSelectTopCandidatesRespectsLimit() {
         List<String> selected = wikidataService.selectTopCandidates(fixture("candidates.json"), 3, 8);
@@ -86,7 +93,7 @@ class WikidataServiceTest {
     }
 
     @Test
-    void testParseDetailsSkipsAttractionsWithoutEnglishLabel() {
+    void testParseDetailsSkipsAttractionsWithoutLabel() {
         Map<String, WikidataAttraction> attractions = parseDetails();
 
         assertEquals(2, attractions.size());
@@ -96,22 +103,32 @@ class WikidataServiceTest {
     @Test
     void testSameAttractionFromTwoCountryQueriesIsNotDuplicated() {
         // Iguazu Falls is returned both by the Argentina and the Brazil query
-        Map<String, WikidataAttraction> attractions = new LinkedHashMap<>();
-        wikidataService.parseDetails(fixture("details.json"), attractions);
-        wikidataService.parseDetails(fixture("details.json"), attractions);
+        WikidataAttraction fromArgentina = parseDetails().get(ENTITY + "Q36332");
+        WikidataAttraction fromBrazil = parseDetails().get(ENTITY + "Q36332");
 
-        assertEquals(2, attractions.size());
-        assertEquals(1, attractions.get(ENTITY + "Q36332").getImages().size());
-        assertEquals(Set.of("Argentina", "Brazil"), attractions.get(ENTITY + "Q36332").getCountries());
+        WikidataAttraction merged = fromArgentina.mergeWith(fromBrazil);
+
+        assertEquals(1, merged.getImages().size());
+        assertEquals(Set.of("Argentina", "Brazil"), merged.getCountries());
     }
 
     private Map<String, WikidataAttraction> parseDetails() {
-        Map<String, WikidataAttraction> attractions = new LinkedHashMap<>();
-        wikidataService.parseDetails(fixture("details.json"), attractions);
-        return attractions;
+        return wikidataService.parseDetails(fixture("details.json"));
     }
 
     private ResultSet fixture(String name) {
         return ResultSetMgr.read(getClass().getResourceAsStream("/wikidata/" + name), ResultSetLang.RS_JSON);
+    }
+
+    private static WikidataProperties loadProperties() {
+        try {
+            List<PropertySource<?>> sources = new YamlPropertySourceLoader()
+                    .load("wikidata", new ClassPathResource("wikidata.yml"));
+            return new Binder(ConfigurationPropertySources.from(sources), new PropertySourcesPlaceholdersResolver(sources))
+                    .bind("wikidata", WikidataProperties.class)
+                    .get();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

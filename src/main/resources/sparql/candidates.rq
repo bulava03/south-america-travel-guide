@@ -1,0 +1,23 @@
+# Types and popularity of the candidates found by Wikidata search.
+# Only candidates with an English Wikipedia article are kept.
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+
+SELECT ?item ?type ?sitelinks
+WHERE {
+  VALUES ?item { {{items}} }
+  VALUES ?type { {{types}} }
+
+  ?item wdt:P31 ?type;
+        wikibase:sitelinks ?sitelinks.
+
+  ?article schema:about ?item;
+           schema:isPartOf <https://en.wikipedia.org/>.
+
+  FILTER NOT EXISTS {
+    VALUES ?excluded { {{excluded}} }
+    ?item wdt:P31 ?excluded.
+  }
+}

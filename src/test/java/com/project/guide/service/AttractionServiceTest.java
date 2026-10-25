@@ -17,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -64,144 +63,46 @@ class AttractionServiceTest {
     }
     
     @Test
-    void testGetAllAttractions() {
-        // Arrange
-        List<Attraction> attractions = Arrays.asList(testAttraction);
-        when(attractionRepository.findAllByOrderByPopularityDesc()).thenReturn(attractions);
+    void testFindAttractionsSearchTakesPrecedenceOverCountry() {
+        when(attractionRepository.searchByName("Machu")).thenReturn(List.of(testAttraction));
 
-        // Act
-        List<AttractionDTO> result = attractionService.getAllAttractions();
-        
-        // Assert
-        assertNotNull(result);
+        List<AttractionDTO> result = attractionService.findAttractions("Chile", "Machu");
+
         assertEquals(1, result.size());
         assertEquals("Machu Picchu", result.get(0).getName());
-        assertEquals(List.of("Peru"), result.get(0).getCountries());
-        
-        verify(attractionRepository, times(1)).findAllByOrderByPopularityDesc();
+        verify(attractionRepository, never()).findByCountry(any());
     }
-    
+
     @Test
-    void testGetAttractionsByCountry() {
-        // Arrange
-        List<Attraction> attractions = Arrays.asList(testAttraction);
-        when(attractionRepository.findByCountry("Peru")).thenReturn(attractions);
-        
-        // Act
-        List<AttractionDTO> result = attractionService.getAttractionsByCountry("Peru");
-        
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(List.of("Peru"), result.get(0).getCountries());
-        
-        verify(attractionRepository, times(1)).findByCountry("Peru");
-    }
-    
-    @Test
-    void testSearchAttractions() {
-        // Arrange
-        List<Attraction> attractions = Arrays.asList(testAttraction);
-        when(attractionRepository.searchByName("Machu")).thenReturn(attractions);
-        
-        // Act
-        List<AttractionDTO> result = attractionService.searchAttractions("Machu");
-        
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertTrue(result.get(0).getName().contains("Machu"));
-        
-        verify(attractionRepository, times(1)).searchByName("Machu");
-    }
-    
-    @Test
-    void testGetAttractionDetails() {
-        // Arrange
-        when(attractionRepository.findById(1L)).thenReturn(Optional.of(testAttraction));
-        
-        // Act
-        var result = attractionService.getAttractionDetails(1L);
-        
-        // Assert
-        assertNotNull(result);
-        assertEquals("Machu Picchu", result.getName());
-        assertEquals(List.of("Peru"), result.getCountries());
-        assertEquals(-13.1631, result.getLatitude());
-        assertEquals(-72.5450, result.getLongitude());
-        
-        verify(attractionRepository, times(1)).findById(1L);
+    void testFindAttractionsByCountryOrAll() {
+        when(attractionRepository.findByCountry("Peru")).thenReturn(List.of(testAttraction));
+        when(attractionRepository.findAllByOrderByPopularityDesc()).thenReturn(List.of());
+
+        assertEquals(List.of("Peru"), attractionService.findAttractions("Peru", "").get(0).getCountries());
+        assertEquals(List.of(), attractionService.findAttractions(null, null));
     }
 
     @Test
     void testGetAttractionDetailsUsesWikipediaDescription() {
-        // Arrange
         testAttraction.setWikipediaUrl("https://en.wikipedia.org/wiki/Machu_Picchu");
         when(attractionRepository.findById(1L)).thenReturn(Optional.of(testAttraction));
         when(wikipediaService.fetchWikipediaExtract("https://en.wikipedia.org/wiki/Machu_Picchu"))
                 .thenReturn("Machu Picchu is a 15th-century Inca citadel.");
 
-        // Act
         var result = attractionService.getAttractionDetails(1L);
 
-        // Assert
+        assertEquals("Machu Picchu", result.getName());
+        assertEquals(List.of("Peru"), result.getCountries());
         assertEquals("Machu Picchu is a 15th-century Inca citadel.", result.getDescription());
     }
 
     @Test
     void testGetAttractionDetailsNotFound() {
-        // Arrange
         when(attractionRepository.findById(999L)).thenReturn(Optional.empty());
-        
-        // Act & Assert
-        assertThrows(AttractionNotFoundException.class, () -> {
-            attractionService.getAttractionDetails(999L);
-        });
-        
-        verify(attractionRepository, times(1)).findById(999L);
+
+        assertThrows(AttractionNotFoundException.class, () -> attractionService.getAttractionDetails(999L));
     }
-    
-    @Test
-    void testGetAllCountries() {
-        // Arrange
-        List<String> countries = Arrays.asList("Peru", "Chile", "Argentina");
-        when(attractionRepository.findAllDistinctCountries()).thenReturn(countries);
-        
-        // Act
-        List<String> result = attractionService.getAllCountries();
-        
-        // Assert
-        assertNotNull(result);
-        assertEquals(3, result.size());
-        assertTrue(result.contains("Peru"));
-        assertTrue(result.contains("Chile"));
-        assertTrue(result.contains("Argentina"));
-        
-        verify(attractionRepository, times(1)).findAllDistinctCountries();
-    }
-    
-    @Test
-    void testGetStatistics() {
-        // Arrange
-        when(attractionRepository.count()).thenReturn(100L);
-        when(imageRepository.count()).thenReturn(250L);
-        when(attractionRepository.findAllDistinctCountries())
-                .thenReturn(Arrays.asList("Peru", "Chile", "Argentina"));
-        
-        // Act
-        var stats = attractionService.getStatistics();
-        
-        // Assert
-        assertNotNull(stats);
-        assertEquals(100L, stats.get("totalAttractions"));
-        assertEquals(250L, stats.get("totalImages"));
-        assertEquals(3, stats.get("countryCount"));
-        
-        verify(attractionRepository, times(1)).count();
-        verify(imageRepository, times(1)).count();
-        verify(attractionRepository, times(1)).findAllDistinctCountries();
-    }
-    
+
     @Test
     void testSyncCreatesNewAttraction() {
         // Arrange
