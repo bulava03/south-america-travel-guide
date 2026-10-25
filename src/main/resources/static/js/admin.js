@@ -15,6 +15,8 @@
 
     var wasRunning = false;
     var timer = null;
+    // Why the latest start was refused, shown until the next start
+    var startError = null;
 
     function request(method, url, body) {
         var headers = { 'Accept': 'application/json' };
@@ -223,7 +225,9 @@
 
     function render(status) {
         stateBox.innerHTML = '';
-        var line = status.running ? runningPanel(status) : resultLine(status);
+        var line = status.running ? runningPanel(status)
+            : startError ? el('div', 'notice notice-error', startError)
+            : resultLine(status);
         if (line) {
             stateBox.appendChild(line);
         }
@@ -253,14 +257,14 @@
 
     function start(url) {
         syncAllButton.disabled = true;
+        startError = null;
         request('POST', url).then(function (status) {
             render(status);
             clearTimeout(timer);
             wasRunning = true;
             timer = setTimeout(poll, POLL_MS);
         }).catch(function (error) {
-            stateBox.innerHTML = '';
-            stateBox.appendChild(el('div', 'notice notice-error', error.message));
+            startError = error.message;
             poll();
         });
     }

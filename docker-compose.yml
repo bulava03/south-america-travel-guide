@@ -19,6 +19,8 @@ services:
       retries: 20
 
   app:
+    # The same image is used by docker-compose.e2e.yml and CI
+    image: south-america-guide
     build: .
     depends_on:
       mysql:

@@ -31,3 +31,54 @@ jobs:
 
       - name: Build image
         run: docker build -t south-america-guide .
+
+      # The browser tests run this image instead of building their own
+      - name: Save image
+        run: docker save south-america-guide | gzip > image.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image
+          path: image.tar.gz
+          retention-days: 1
+
+  e2e:
+    name: Browser tests
+    runs-on: ubuntu-latest
+    needs: docker
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: image
+
+      - name: Load image
+        run: gunzip -c image.tar.gz | docker load
+
+      - name: Start the app with test data
+        run: docker compose -f docker-compose.e2e.yml up -d --no-build --wait
+
+      - name: Install Playwright
+        working-directory: e2e
+        run: npm ci && npx playwright install --with-deps chromium
+
+      - name: Run browser tests
+        working-directory: e2e
+        run: npx playwright test
+
+      - name: App logs
+        if: failure()
+        run: docker compose -f docker-compose.e2e.yml logs app
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: e2e/playwright-report
