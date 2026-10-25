@@ -1,0 +1,387 @@
+{
+  "head": {
+    "vars": [
+      "item",
+      "itemLabel",
+      "type",
+      "country",
+      "coord",
+      "image",
+      "article",
+      "sitelinks"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q36332"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Iguazu Falls",
+          "xml:lang": "en"
+        },
+        "type": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q34038"
+        },
+        "country": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q414"
+        },
+        "coord": {
+          "type": "literal",
+          "value": "Point(-54.436666 -25.695)",
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+        },
+        "image": {
+          "type": "uri",
+          "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Iguazu.jpg"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Iguazu_Falls"
+        },
+        "sitelinks": {
+          "type": "literal",
+          "value": "99",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      },
+      {
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q36332"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Iguazu Falls",
+          "xml:lang": "en"
+        },
+        "type": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q34038"
+        },
+        "country": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q155"
+        },
+        "coord": {
+          "type": "literal",
+          "value": "Point(-54.436666 -25.695)",
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+        },
+        "image": {
+          "type": "uri",
+          "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Iguazu.jpg"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Iguazu_Falls"
+        },
+        "sitelinks": {
+          "type": "literal",
+          "value": "99",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      },
+      {
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q36332"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Iguazu Falls",
+          "xml:lang": "en"
+        },
+        "type": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q9259"
+        },
+        "country": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q414"
+        },
+        "coord": {
+          "type": "literal",
+          "value": "Point(-54.436666 -25.695)",
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+        },
+        "image": {
+          "type": "uri",
+          "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Iguazu.jpg"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Iguazu_Falls"
+        },
+        "sitelinks": {
+          "type": "literal",
+          "value": "99",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      },
+      {
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q36332"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Iguazu Falls",
+          "xml:lang": "en"
+        },
+        "type": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q9259"
+        },
+        "country": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q155"
+        },
+        "coord": {
+          "type": "literal",
+          "value": "Point(-54.436666 -25.695)",
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+        },
+        "image": {
+          "type": "uri",
+          "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Iguazu.jpg"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Iguazu_Falls"
+        },
+        "sitelinks": {
+          "type": "literal",
+          "value": "99",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      },
+      {
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q676203"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Machu Picchu",
+          "xml:lang": "en"
+        },
+        "type": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q9259"
+        },
+        "country": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q419"
+        },
+        "coord": {
+          "type": "literal",
+          "value": "Point(-72.545 -13.1631)",
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+        },
+        "image": {
+          "type": "uri",
+          "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Machu%20Picchu%201.jpg"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Machu_Picchu"
+        },
+        "sitelinks": {
+          "type": "literal",
+          "value": "140",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      },
+      {
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q676203"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Machu Picchu",
+          "xml:lang": "en"
+        },
+        "type": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q839954"
+        },
+        "country": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q419"
+        },
+        "coord": {
+          "type": "literal",
+          "value": "Point(-72.545 -13.1631)",
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+        },
+        "image": {
+          "type": "uri",
+          "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Machu%20Picchu%201.jpg"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Machu_Picchu"
+        },
+        "sitelinks": {
+          "type": "literal",
+          "value": "140",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      },
+      {
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q676203"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Machu Picchu",
+          "xml:lang": "en"
+        },
+        "type": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q9259"
+        },
+        "country": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q419"
+        },
+        "coord": {
+          "type": "literal",
+          "value": "Point(-72.545 -13.1631)",
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+        },
+        "image": {
+          "type": "uri",
+          "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Machu%20Picchu%202.jpg"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Machu_Picchu"
+        },
+        "sitelinks": {
+          "type": "literal",
+          "value": "140",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      },
+      {
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q676203"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Machu Picchu",
+          "xml:lang": "en"
+        },
+        "type": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q839954"
+        },
+        "country": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q419"
+        },
+        "coord": {
+          "type": "literal",
+          "value": "Point(-72.545 -13.1631)",
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+        },
+        "image": {
+          "type": "uri",
+          "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Machu%20Picchu%202.jpg"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Machu_Picchu"
+        },
+        "sitelinks": {
+          "type": "literal",
+          "value": "140",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      },
+      {
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q676203"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Machu Picchu",
+          "xml:lang": "en"
+        },
+        "type": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q9259"
+        },
+        "country": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q30"
+        },
+        "coord": {
+          "type": "literal",
+          "value": "Point(-72.545 -13.1631)",
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+        },
+        "image": {
+          "type": "uri",
+          "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Machu%20Picchu%201.jpg"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Machu_Picchu"
+        },
+        "sitelinks": {
+          "type": "literal",
+          "value": "140",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      },
+      {
+        "item": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q99999999"
+        },
+        "itemLabel": {
+          "type": "literal",
+          "value": "Q99999999"
+        },
+        "type": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q839954"
+        },
+        "country": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q298"
+        },
+        "coord": {
+          "type": "literal",
+          "value": "Point(-70.0 -20.0)",
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral"
+        },
+        "image": {
+          "type": "uri",
+          "value": "http://commons.wikimedia.org/wiki/Special:FilePath/Unknown.jpg"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Unknown"
+        },
+        "sitelinks": {
+          "type": "literal",
+          "value": "5",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      }
+    ]
+  }
+}

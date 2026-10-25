@@ -37,7 +37,7 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">Country:</span>
-                    <span th:text="${attraction.country}">Country</span>
+                    <span th:text="${#strings.listJoin(attraction.countries, ', ')}">Country</span>
                 </div>
                 <div class="info-item" th:if="${attraction.latitude != null}">
                     <span class="info-label">Coordinates:</span>

@@ -16,7 +16,7 @@ public class AttractionDetailDTO {
     private Long id;
     private String name;
     private String type;
-    private String country;
+    private List<String> countries;
     private Double latitude;
     private Double longitude;
     private String mainImage;

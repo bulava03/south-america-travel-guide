@@ -2,6 +2,8 @@ package com.project.guide.service;
 
 import com.project.guide.dto.AttractionDTO;
 import com.project.guide.dto.AttractionDetailDTO;
+import com.project.guide.dto.WikidataAttraction;
+import com.project.guide.dto.WikidataFetchResult;
 import com.project.guide.exception.AttractionNotFoundException;
 import com.project.guide.model.Attraction;
 import com.project.guide.model.AttractionImage;
@@ -12,8 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -31,48 +35,43 @@ public class AttractionService {
     
     /**
      * Syncs attractions from Wikidata to local database.
-     * Existing attractions are updated by Wikidata URI, new ones are created,
-     * and attractions that are no longer returned by Wikidata are removed.
-     * Nothing changes if the Wikidata request fails.
+     * Existing attractions are updated by Wikidata URI and new ones are created.
+     * Attractions that are no longer returned by Wikidata are removed, but only if all countries
+     * were fetched successfully: otherwise attractions of a failed country would be lost.
+     * Nothing changes if Wikidata requests for all countries fail.
      */
     @Transactional
     public void syncWithWikidata() {
         log.info("Starting synchronization with Wikidata...");
         
-        Map<String, Map<String, Object>> wikidataAttractions = wikidataService.fetchAttractions();
+        WikidataFetchResult result = wikidataService.fetchAttractions();
         
         int created = 0;
         int updated = 0;
+        Set<String> fetchedUris = new HashSet<>();
         
-        for (Map.Entry<String, Map<String, Object>> entry : wikidataAttractions.entrySet()) {
-            String uri = entry.getKey();
-            Map<String, Object> data = entry.getValue();
+        for (WikidataAttraction data : result.attractions()) {
+            fetchedUris.add(data.getUri());
             
-            Attraction attraction = attractionRepository.findByWikidataUri(uri)
+            Attraction attraction = attractionRepository.findByWikidataUri(data.getUri())
                     .orElse(new Attraction());
             
             boolean isNew = attraction.getId() == null;
             
             // Update basic fields
-            attraction.setWikidataUri(uri);
-            attraction.setName((String) data.get("name"));
-            attraction.setType((String) data.get("type"));
-            attraction.setCountry((String) data.get("country"));
-            attraction.setWikipediaUrl((String) data.get("wikipedia"));
+            attraction.setWikidataUri(data.getUri());
+            attraction.setName(data.getName());
+            attraction.setType(data.getType());
+            attraction.setLatitude(data.getLatitude());
+            attraction.setLongitude(data.getLongitude());
+            attraction.setWikipediaUrl(data.getWikipediaUrl());
+            attraction.setPopularity(data.getPopularity());
             
-            // Parse coordinates
-            if (data.containsKey("latitude") && data.containsKey("longitude")) {
-                try {
-                    attraction.setLatitude(Double.parseDouble((String) data.get("latitude")));
-                    attraction.setLongitude(Double.parseDouble((String) data.get("longitude")));
-                } catch (NumberFormatException e) {
-                    log.warn("Failed to parse coordinates for {}", uri);
-                }
-            }
+            attraction.getCountries().clear();
+            attraction.getCountries().addAll(data.getCountries());
             
             // Replace images, first image is the main one
-            @SuppressWarnings("unchecked")
-            List<String> imageUrls = (List<String>) data.getOrDefault("images", List.of());
+            List<String> imageUrls = data.getImages();
             
             attraction.getImages().clear();
             attraction.setMainImage(imageUrls.isEmpty() ? null : imageUrls.get(0));
@@ -91,21 +90,26 @@ public class AttractionService {
             }
         }
         
-        // Remove attractions that are no longer returned by Wikidata
-        List<Attraction> removed = attractionRepository.findAll().stream()
-                .filter(attraction -> !wikidataAttractions.containsKey(attraction.getWikidataUri()))
-                .collect(Collectors.toList());
-        attractionRepository.deleteAll(removed);
+        int removed = 0;
+        if (result.isComplete()) {
+            // Remove attractions that are no longer returned by Wikidata
+            List<Attraction> outdated = attractionRepository.findAll().stream()
+                    .filter(attraction -> !fetchedUris.contains(attraction.getWikidataUri()))
+                    .collect(Collectors.toList());
+            attractionRepository.deleteAll(outdated);
+            removed = outdated.size();
+        } else {
+            log.warn("Not removing outdated attractions, failed countries: {}", result.failedCountries());
+        }
         
-        log.info("Synchronization complete. Created: {}, Updated: {}, Removed: {}",
-                created, updated, removed.size());
+        log.info("Synchronization complete. Created: {}, Updated: {}, Removed: {}", created, updated, removed);
     }
     
     /**
      * Gets all attractions as DTOs.
      */
     public List<AttractionDTO> getAllAttractions() {
-        return attractionRepository.findAll().stream()
+        return attractionRepository.findAllByOrderByPopularityDesc().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -169,6 +173,10 @@ public class AttractionService {
         );
     }
     
+    private List<String> sortedCountries(Attraction attraction) {
+        return attraction.getCountries().stream().sorted().collect(Collectors.toList());
+    }
+    
     /**
      * Converts Attraction entity to AttractionDTO.
      */
@@ -177,7 +185,7 @@ public class AttractionService {
                 attraction.getId(),
                 attraction.getName(),
                 attraction.getType(),
-                attraction.getCountry(),
+                sortedCountries(attraction),
                 attraction.getLatitude(),
                 attraction.getLongitude(),
                 attraction.getMainImage()
@@ -196,7 +204,7 @@ public class AttractionService {
                 attraction.getId(),
                 attraction.getName(),
                 attraction.getType(),
-                attraction.getCountry(),
+                sortedCountries(attraction),
                 attraction.getLatitude(),
                 attraction.getLongitude(),
                 attraction.getMainImage(),

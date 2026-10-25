@@ -33,7 +33,7 @@ class AttractionApiControllerTest {
     private AttractionService attractionService;
 
     private final AttractionDTO machuPicchu = new AttractionDTO(
-            1L, "Machu Picchu", "World Heritage Site", "Peru", -13.1631, -72.5450, "http://example.com/image.jpg"
+            1L, "Machu Picchu", "World Heritage Site", List.of("Peru"), -13.1631, -72.5450, "http://example.com/image.jpg"
     );
 
     @Test
@@ -44,7 +44,7 @@ class AttractionApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].name").value("Machu Picchu"))
-                .andExpect(jsonPath("$[0].country").value("Peru"));
+                .andExpect(jsonPath("$[0].countries[0]").value("Peru"));
     }
 
     @Test
@@ -53,7 +53,7 @@ class AttractionApiControllerTest {
 
         mockMvc.perform(get("/api/attractions").param("country", "Peru"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].country").value("Peru"));
+                .andExpect(jsonPath("$[0].countries[0]").value("Peru"));
 
         verify(attractionService, never()).getAllAttractions();
     }
@@ -72,7 +72,7 @@ class AttractionApiControllerTest {
     @Test
     void testGetAttractionDetails() throws Exception {
         AttractionDetailDTO details = new AttractionDetailDTO(
-                1L, "Machu Picchu", "World Heritage Site", "Peru", -13.1631, -72.5450,
+                1L, "Machu Picchu", "World Heritage Site", List.of("Peru"), -13.1631, -72.5450,
                 "http://example.com/image.jpg", "Inca citadel",
                 "https://en.wikipedia.org/wiki/Machu_Picchu", "http://www.wikidata.org/entity/Q676203",
                 List.of("http://example.com/image.jpg")

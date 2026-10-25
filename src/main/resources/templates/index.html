@@ -59,7 +59,7 @@
             <div class="card-content">
                 <h3 th:text="${attraction.name}">Attraction Name</h3>
                 <p class="card-type" th:text="${attraction.type}">Type</p>
-                <p class="card-country">📍 <span th:text="${attraction.country}">Country</span></p>
+                <p class="card-country">📍 <span th:text="${#strings.listJoin(attraction.countries, ', ')}">Country</span></p>
                 <a th:href="@{/attraction/{id}(id=${attraction.id})}" class="btn-view">View Details</a>
             </div>
         </div>

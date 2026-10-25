@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Entity representing a tourist attraction in South America.
@@ -31,9 +33,21 @@ public class Attraction {
     @Column(length = 200)
     private String type;
     
-    @Column(length = 100)
-    private String country;
-    
+    /**
+     * Countries the attraction is located in, usually one.
+     */
+    @ElementCollection
+    @CollectionTable(name = "attraction_countries", joinColumns = @JoinColumn(name = "attraction_id"))
+    @Column(name = "country", nullable = false, length = 100)
+    @Builder.Default
+    private Set<String> countries = new TreeSet<>();
+
+    /**
+     * Number of Wikipedia language editions, used to rank attractions.
+     */
+    @Column(nullable = false)
+    private int popularity;
+
     @Column
     private Double latitude;
     
