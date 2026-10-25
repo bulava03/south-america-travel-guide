@@ -40,6 +40,9 @@ class AttractionServiceTest {
 
     @Mock
     private WikipediaService wikipediaService;
+    
+    @Mock
+    private PhotoService photoService;
 
     @InjectMocks
     private AttractionService attractionService;
@@ -129,6 +132,8 @@ class AttractionServiceTest {
         assertEquals(-25.695, attraction.getLatitude());
         assertEquals(-54.4367, attraction.getLongitude());
         assertEquals("http://example.com/a.jpg", attraction.getMainImage());
+        assertEquals(1280, attraction.getMainImageWidth());
+        assertEquals(789, attraction.getMainImageHeight());
         assertEquals(2, attraction.getImages().size());
         assertSame(attraction, attraction.getImages().get(0).getAttraction());
     }
@@ -224,6 +229,8 @@ class AttractionServiceTest {
         attraction.setLongitude(-54.4367);
         attraction.setPopularity(99);
         attraction.getImages().addAll(images);
+        attraction.setImageWidth(1280);
+        attraction.setImageHeight(789);
         return attraction;
     }
 }

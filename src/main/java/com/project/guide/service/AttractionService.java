@@ -31,6 +31,7 @@ public class AttractionService {
     private final AttractionImageRepository imageRepository;
     private final WikidataService wikidataService;
     private final WikipediaService wikipediaService;
+    private final PhotoService photoService;
 
     /**
      * Syncs attractions from Wikidata to local database.
@@ -38,10 +39,12 @@ public class AttractionService {
      * Attractions that are no longer returned by Wikidata are removed, but only if all countries
      * were fetched successfully: otherwise attractions of a failed country would be lost.
      * Nothing changes if Wikidata requests for all countries fail.
+     * Images that are not photos (maps, flags, drawings) are dropped, see PhotoService.
      */
     @Transactional
     public void syncWithWikidata() {
         WikidataFetchResult result = wikidataService.fetchAttractions();
+        photoService.selectPhotos(result.attractions());
 
         int created = 0;
         for (WikidataAttraction data : result.attractions()) {

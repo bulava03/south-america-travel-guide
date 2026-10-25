@@ -1,0 +1,25 @@
+# Wikimedia Commons photos (bound to CommonsProperties)
+commons:
+  api-endpoint: https://commons.wikimedia.org/w/api.php
+  # Files per image info request (API limit for normal clients)
+  batch-size: 50
+  # Files whose name contains one of these words are not photos of the place
+  # (maps, satellite images, flags, coats of arms); matched as whole words, case-insensitive
+  non-photo-words:
+    - map
+    - mapa
+    - mappa
+    - karte
+    - carte
+    - locator
+    - location
+    - satellite
+    - nasa
+    - landsat
+    - flag
+    - bandera
+    - bandeira
+    - coat of arms
+    - escudo
+    - logo
+    - diagram

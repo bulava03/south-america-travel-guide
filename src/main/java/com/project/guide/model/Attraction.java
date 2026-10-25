@@ -57,7 +57,13 @@ public class Attraction {
     
     @Column(length = 1000)
     private String mainImage;
-    
+
+    @Column
+    private Integer mainImageWidth;
+
+    @Column
+    private Integer mainImageHeight;
+
     @Column(columnDefinition = "TEXT")
     private String description;
     
@@ -93,6 +99,8 @@ public class Attraction {
 
         images.clear();
         mainImage = data.getImages().isEmpty() ? null : data.getImages().get(0);
+        mainImageWidth = data.getImageWidth();
+        mainImageHeight = data.getImageHeight();
         data.getImages().forEach(url -> addImage(AttractionImage.builder().imageUrl(url).build()));
     }
 }

@@ -3,6 +3,7 @@ package com.project.guide.controller;
 import com.project.guide.config.SecurityConfig;
 import com.project.guide.dto.AttractionDTO;
 import com.project.guide.dto.AttractionDetailDTO;
+import com.project.guide.dto.PhotoLayout;
 import com.project.guide.exception.AttractionNotFoundException;
 import com.project.guide.service.AttractionService;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,7 @@ class AttractionApiControllerTest {
     @Test
     void testGetAttractionsWithFilters() throws Exception {
         when(attractionService.findAttractions("Peru", "Machu")).thenReturn(List.of(new AttractionDTO(
-                1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450, "http://example.com/a.jpg"
+                1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450, "http://example.com/a.jpg", PhotoLayout.COVER
         )));
 
         mockMvc.perform(get("/api/attractions").param("country", "Peru").param("search", "Machu"))
@@ -49,7 +50,7 @@ class AttractionApiControllerTest {
     void testGetAttractionDetails() throws Exception {
         when(attractionService.getAttractionDetails(1L)).thenReturn(new AttractionDetailDTO(
                 1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450,
-                "http://example.com/a.jpg", "Inca citadel",
+                "http://example.com/a.jpg", PhotoLayout.COVER, "Inca citadel",
                 "https://en.wikipedia.org/wiki/Machu_Picchu", "http://www.wikidata.org/entity/Q676203",
                 List.of("http://example.com/a.jpg")
         ));

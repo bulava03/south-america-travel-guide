@@ -19,6 +19,9 @@ public class WikidataAttraction {
     private Double latitude;
     private Double longitude;
     private List<String> images = new ArrayList<>();
+    /** Size of the first image, set from Wikimedia Commons; null if unknown. */
+    private Integer imageWidth;
+    private Integer imageHeight;
     private String wikipediaUrl;
     private int popularity;
 

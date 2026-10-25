@@ -21,6 +21,7 @@ public class AttractionDTO {
     private Double latitude;
     private Double longitude;
     private String mainImage;
+    private PhotoLayout photoLayout;
 
     public static AttractionDTO from(Attraction attraction) {
         return new AttractionDTO(
@@ -30,7 +31,8 @@ public class AttractionDTO {
                 attraction.getCountries().stream().sorted().toList(),
                 attraction.getLatitude(),
                 attraction.getLongitude(),
-                attraction.getMainImage()
+                attraction.getMainImage(),
+                PhotoLayout.of(attraction.getMainImage(), attraction.getMainImageWidth(), attraction.getMainImageHeight())
         );
     }
 }

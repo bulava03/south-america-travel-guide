@@ -22,6 +22,7 @@ public class AttractionDetailDTO {
     private Double latitude;
     private Double longitude;
     private String mainImage;
+    private PhotoLayout photoLayout;
     private String description;
     private String wikipediaUrl;
     private String wikidataUri;
@@ -36,6 +37,7 @@ public class AttractionDetailDTO {
                 attraction.getLatitude(),
                 attraction.getLongitude(),
                 attraction.getMainImage(),
+                PhotoLayout.of(attraction.getMainImage(), attraction.getMainImageWidth(), attraction.getMainImageHeight()),
                 attraction.getDescription(),
                 attraction.getWikipediaUrl(),
                 attraction.getWikidataUri(),
