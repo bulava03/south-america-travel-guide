@@ -136,6 +136,8 @@ e2e/            Playwright tests and their test data
 
 ## Data and licenses
 
+The code is under the [MIT License](LICENSE). The data shown on the site comes from Wikimedia projects:
+
 - Place data: [Wikidata](https://www.wikidata.org), CC0.
 - Descriptions: [Wikipedia](https://en.wikipedia.org), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
   Every attraction page links to its article.
