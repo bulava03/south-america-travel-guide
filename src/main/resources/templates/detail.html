@@ -1,141 +1,85 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${attraction.name} + ' - South America Guide'">Attraction Details</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-</head>
+<head th:replace="~{fragments :: pageHead(${attraction.name} + ' - South America Guide')}"></head>
 <body>
-<header>
-    <div class="container">
-        <a href="/" style="text-decoration: none; color: inherit; cursor: pointer;">
-            <h1>🌎 South America Guide</h1>
-            <p class="subtitle">Explore Cultural & Natural Heritage</p>
-        </a>
-    </div>
-</header>
+<header th:replace="~{fragments :: siteHeader('')}"></header>
 
-<main class="container">
-    <div class="detail-container">
-        <!-- Main Image -->
-        <div class="detail-image">
-            <img th:src="${attraction.mainImage}"
-                 th:alt="${attraction.name}"
-                 onerror="this.src='https://via.placeholder.com/800x400?text=No+Image'">
+<main class="page-main container" th:object="${attraction}">
+    <a class="back" th:href="@{/places}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+        All places
+    </a>
+
+    <div class="detail">
+        <!-- The whole photo is always visible: over its blurred copy, or as a print when it is small -->
+        <div class="detail-photo" th:switch="*{photoLayout.name()}">
+            <th:block th:case="'NONE'">
+                <div class="plate-none"></div>
+                <span class="plate-none-name" th:text="*{name}">Name</span>
+            </th:block>
+            <th:block th:case="'PRINT'">
+                <div class="plate-print-bg"></div>
+                <img class="plate-print" th:src="*{photo}" th:alt="*{name}">
+            </th:block>
+            <th:block th:case="*">
+                <img class="plate-blur" th:src="*{photo}" alt="" aria-hidden="true">
+                <img class="plate-fit" th:src="*{photo}" th:alt="*{name}">
+            </th:block>
+            <a class="photo-credit" th:if="*{photoPage != null}" th:href="*{photoPage}">Photo: Wikimedia Commons</a>
         </div>
 
-        <!-- Attraction Info -->
         <div class="detail-info">
-            <h1 th:text="${attraction.name}">Attraction Name</h1>
+            <span class="badge" th:if="*{type != null}" th:text="*{#strings.capitalize(type)}">Monument</span>
+            <h1 th:text="*{name}">Christ the Redeemer</h1>
 
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">Type:</span>
-                    <span th:text="${attraction.type}">Type</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Country:</span>
-                    <span th:text="${#strings.listJoin(attraction.countries, ', ')}">Country</span>
-                </div>
-                <div class="info-item" th:if="${attraction.latitude != null}">
-                    <span class="info-label">Coordinates:</span>
-                    <span th:text="${attraction.latitude + ', ' + attraction.longitude}">Coordinates</span>
-                </div>
-            </div>
-
-            <!-- Description -->
-            <div class="description" th:if="${attraction.description != null}">
-                <h2>Description</h2>
-                <p th:text="${attraction.description}">Description text</p>
-            </div>
-
-            <!-- External Links -->
-            <div class="external-links">
-                <a th:if="${attraction.wikipediaUrl != null}"
-                   th:href="${attraction.wikipediaUrl}"
-                   target="_blank"
-                   class="btn-external">
-                    📖 View on Wikipedia
-                </a>
-                <a th:if="${attraction.wikidataUri != null}"
-                   th:href="${attraction.wikidataUri}"
-                   target="_blank"
-                   class="btn-external">
-                    🌐 View on Wikidata
+            <div class="chips">
+                <a class="chip" th:each="country : *{countries}" th:href="@{/places(country=${country})}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>
+                    </svg>
+                    <span th:text="${country}">Brazil</span>
                 </a>
             </div>
-        </div>
 
-        <!-- Map -->
-        <div class="detail-map" th:if="${attraction.latitude != null}">
-            <h2>Location</h2>
-            <div id="map" style="height: 400px; border-radius: 8px;"></div>
-        </div>
+            <th:block th:if="*{description != null}">
+                <p class="description" th:text="*{description}">Description</p>
+                <p class="source" th:if="*{wikipediaUrl != null}">Text from
+                    <a th:href="*{wikipediaUrl}">Wikipedia</a>, CC BY-SA</p>
+            </th:block>
 
-        <!-- Additional Images Gallery -->
-        <div class="image-gallery" th:if="${not #lists.isEmpty(attraction.additionalImages)}">
-            <h2>Photo Gallery</h2>
-            <div class="gallery-grid">
-                <div class="gallery-item" th:each="image : ${attraction.additionalImages}">
-                    <img th:src="${image}"
-                         alt="Gallery image"
-                         onclick="openImageModal(this.src)">
+            <div class="facts" th:if="*{latitude != null}">
+                <div class="fact">
+                    <span class="fact-label">Latitude</span>
+                    <span class="fact-value" th:text="*{latitudeText}">22.9519° S</span>
+                </div>
+                <div class="fact">
+                    <span class="fact-label">Longitude</span>
+                    <span class="fact-value" th:text="*{longitudeText}">43.2105° W</span>
                 </div>
             </div>
-        </div>
 
-        <!-- Back Button -->
-        <div class="back-section">
-            <a href="/" class="btn-back">← Back to List</a>
+            <div class="actions">
+                <a class="btn btn-sun" th:if="*{mapUrl != null}" th:href="*{mapUrl}">Show on map</a>
+                <a class="btn btn-line" th:if="*{wikipediaUrl != null}" th:href="*{wikipediaUrl}">Read on Wikipedia</a>
+                <a class="btn btn-line" th:if="*{wikidataPage != null}" th:href="*{wikidataPage}">Wikidata</a>
+            </div>
         </div>
     </div>
+
+    <section class="more" th:unless="${#lists.isEmpty(more)}" aria-labelledby="more-title">
+        <h2 id="more-title" th:text="'More in ' + *{countries[0]}">More in Brazil</h2>
+        <div class="more-cards">
+            <a class="mini" th:each="m : ${more}" th:href="@{/attraction/{id}(id=${m.id})}">
+                <span class="mini-photo"><img th:if="${m.mainImage != null}" th:src="${m.smallThumbnail}" alt="" loading="lazy"></span>
+                <span class="mini-text">
+                    <span class="mini-name" th:text="${m.name}">Iguaçu Falls</span>
+                    <span class="mini-type" th:text="${m.type}">waterfall</span>
+                </span>
+            </a>
+        </div>
+    </section>
 </main>
-
-<footer>
-    <div class="container">
-        <p>&copy; 2025 South America Guide. Data from <a href="https://www.wikidata.org" target="_blank">Wikidata</a></p>
-    </div>
-</footer>
-
-<!-- Image Modal -->
-<div id="imageModal" class="modal" onclick="closeImageModal()">
-    <span class="modal-close">&times;</span>
-    <img class="modal-content" id="modalImage">
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script th:inline="javascript">
-    // Initialize map if coordinates are available
-    /*<![CDATA[*/
-    var latitude = /*[[${attraction.latitude}]]*/ null;
-    var longitude = /*[[${attraction.longitude}]]*/ null;
-    var name = /*[[${attraction.name}]]*/ 'Attraction';
-
-    if (latitude != null && longitude != null) {
-        var map = L.map('map').setView([latitude, longitude], 12);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        L.marker([latitude, longitude])
-            .addTo(map)
-            .bindPopup('<b>' + name + '</b>')
-            .openPopup();
-    }
-
-    // Image modal functions
-    function openImageModal(src) {
-        document.getElementById('imageModal').style.display = 'flex';
-        document.getElementById('modalImage').src = src;
-    }
-
-    function closeImageModal() {
-        document.getElementById('imageModal').style.display = 'none';
-    }
-    /*]]>*/
-</script>
 </body>
 </html>

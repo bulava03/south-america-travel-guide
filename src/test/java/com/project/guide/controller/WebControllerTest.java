@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -41,17 +43,29 @@ class WebControllerTest {
 
     @Test
     void testHomePage() throws Exception {
+        when(attractionService.getAllCountries()).thenReturn(List.of("Argentina", "Brazil"));
+        
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("home"))
+                .andExpect(content().string(containsString("/places?country=Brazil")));
+    }
+    
+    @Test
+    void testPlacesPage() throws Exception {
         when(attractionService.findAttractions("Peru", null)).thenReturn(List.of(new AttractionDTO(
                 1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450, "http://example.com/a.jpg", PhotoLayout.COVER
         )));
         when(attractionService.getAllCountries()).thenReturn(List.of("Chile", "Peru"));
-
-        mockMvc.perform(get("/").param("country", "Peru"))
+        
+        mockMvc.perform(get("/places").param("country", "Peru"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("selectedCountry", "Peru"))
-                .andExpect(content().string(containsString("Machu Picchu")));
+                .andExpect(content().string(containsString("Machu Picchu")))
+                // a thumbnail instead of the original file
+                .andExpect(content().string(containsString("https://example.com/a.jpg?width=800")));
     }
-
+    
     @Test
     void testAttractionDetailsPage() throws Exception {
         when(attractionService.getAttractionDetails(1L)).thenReturn(new AttractionDetailDTO(
@@ -61,9 +75,16 @@ class WebControllerTest {
                 List.of("http://example.com/a.jpg")
         ));
 
+        when(attractionService.findMoreInCountry(any(), anyInt())).thenReturn(List.of(new AttractionDTO(
+                2L, "Titicaca", "lake", List.of("Bolivia", "Peru"), -15.825, -69.325, null, PhotoLayout.NONE
+        )));
+        
         mockMvc.perform(get("/attraction/1"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Inca citadel")));
+                .andExpect(content().string(containsString("Inca citadel")))
+                .andExpect(content().string(containsString("13.1631° S")))
+                .andExpect(content().string(containsString("More in Peru")))
+                .andExpect(content().string(containsString("Titicaca")));
     }
 
     @Test

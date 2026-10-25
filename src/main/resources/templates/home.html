@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: pageHead('South America Guide')}"></head>
+<body>
+<div class="hero">
+    <img class="hero-bg" alt=""
+         src="https://commons.wikimedia.org/wiki/Special:FilePath/Aerial%20Foz%20de%20Igua%C3%A7u%2026%20Nov%202005.jpg?width=1920">
+    <div class="hero-shade"></div>
+
+    <header class="hero-header container">
+        <a th:replace="~{fragments :: logo}"></a>
+        <nav th:replace="~{fragments :: mainNav('home')}"></nav>
+    </header>
+
+    <main class="hero-main container">
+        <div class="hero-text">
+            <h1 class="readable">Explore South&nbsp;America</h1>
+            <p class="readable">Famous waterfalls, glaciers, salt flats and old cities of the continent —
+                with photos and stories for every place.</p>
+            <div class="hero-actions">
+                <a class="btn btn-sun" th:href="@{/places}">Explore places
+                    <svg th:replace="~{fragments :: arrow}"></svg>
+                </a>
+                <a class="btn btn-glass" href="#countries" id="choose-country">Choose a country</a>
+            </div>
+        </div>
+
+        <div class="hero-footer">
+            <div id="countries" class="chips" aria-label="Countries">
+                <a class="chip" th:each="country : ${countries}"
+                   th:href="@{/places(country=${country})}" th:text="${country}">Argentina</a>
+            </div>
+            <span class="photo-credit readable">Iguaçu Falls · Argentina, Brazil · Photo:
+                <a href="https://commons.wikimedia.org/wiki/File:Aerial_Foz_de_Igua%C3%A7u_26_Nov_2005.jpg">Wikimedia Commons</a></span>
+        </div>
+    </main>
+</div>
+<script>
+    // The country chips are already on screen, so instead of scrolling they light up
+    document.getElementById('choose-country').addEventListener('click', function (event) {
+        event.preventDefault();
+        var chips = document.getElementById('countries');
+        chips.classList.remove('highlight');
+        void chips.offsetWidth; // restart the animation on every click
+        chips.classList.add('highlight');
+        var first = chips.querySelector('.chip');
+        if (first) {
+            first.focus({ preventScroll: true });
+        }
+    });
+</script>
+</body>
+</html>

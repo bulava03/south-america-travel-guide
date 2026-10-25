@@ -105,6 +105,19 @@ public class AttractionService {
         return details;
     }
 
+    /**
+     * The most popular other attractions of the attraction's first country.
+     */
+    public List<AttractionDTO> findMoreInCountry(AttractionDetailDTO attraction, int limit) {
+        if (attraction.getCountries().isEmpty()) {
+            return List.of();
+        }
+        return findAttractions(attraction.getCountries().get(0), null).stream()
+                .filter(other -> !other.getId().equals(attraction.getId()))
+                .limit(limit)
+                .toList();
+    }
+
     public List<String> getAllCountries() {
         return attractionRepository.findAllDistinctCountries();
     }

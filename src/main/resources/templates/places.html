@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: pageHead('Places to see - South America Guide')}"></head>
+<body>
+<header th:replace="~{fragments :: siteHeader('places')}"></header>
+
+<main class="page-main container">
+    <div class="page-title">
+        <div>
+            <h1 th:text="${selectedCountry != null and !#strings.isEmpty(selectedCountry) and #strings.isEmpty(searchTerm)} ? ${selectedCountry} : 'Places to see'">Places to see</h1>
+            <p th:if="${#strings.isEmpty(searchTerm)}">The most famous places come first.</p>
+            <p th:unless="${#strings.isEmpty(searchTerm)}" th:text="|Results for “${searchTerm}”|">Results</p>
+        </div>
+        <form class="search" role="search" th:action="@{/places}" method="get">
+            <label for="search" class="visually-hidden">Search places</label>
+            <input id="search" type="search" name="search" placeholder="Search a place…" th:value="${searchTerm}">
+            <button class="btn btn-sun" type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="chips" role="group" aria-label="Country">
+        <a class="chip" th:classappend="${#strings.isEmpty(selectedCountry) and #strings.isEmpty(searchTerm)} ? 'active'"
+           th:href="@{/places}">All countries</a>
+        <a class="chip" th:each="country : ${countries}"
+           th:classappend="${country == selectedCountry and #strings.isEmpty(searchTerm)} ? 'active'"
+           th:href="@{/places(country=${country})}" th:text="${country}">Argentina</a>
+    </div>
+
+    <div class="cards" th:unless="${#lists.isEmpty(attractions)}">
+        <a class="card" th:each="a : ${attractions}" th:href="@{/attraction/{id}(id=${a.id})}">
+            <div th:replace="~{fragments :: plate(${a})}"></div>
+            <div class="card-body">
+                <div class="card-text">
+                    <span class="card-name" th:text="${a.name}">Machu Picchu</span>
+                    <span class="card-countries" th:text="${#strings.listJoin(a.countries, ', ')}">Peru</span>
+                </div>
+                <span class="card-go"><svg th:replace="~{fragments :: arrow}"></svg></span>
+            </div>
+        </a>
+    </div>
+
+    <div class="empty" th:if="${#lists.isEmpty(attractions)}">
+        <h2>Nothing found</h2>
+        <p>Try another name or look through all places.</p>
+        <a class="btn btn-sun" th:href="@{/places}">All places</a>
+    </div>
+</main>
+
+<footer th:replace="~{fragments :: siteFooter}"></footer>
+</body>
+</html>

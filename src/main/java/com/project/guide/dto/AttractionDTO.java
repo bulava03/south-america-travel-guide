@@ -23,6 +23,20 @@ public class AttractionDTO {
     private String mainImage;
     private PhotoLayout photoLayout;
 
+    /**
+     * Photo for a card, 800 px wide.
+     */
+    public String getThumbnail() {
+        return DisplayFormat.thumbnail(mainImage, 800);
+    }
+    
+    /**
+     * Photo for small cards, 200 px wide.
+     */
+    public String getSmallThumbnail() {
+        return DisplayFormat.thumbnail(mainImage, 200);
+    }
+
     public static AttractionDTO from(Attraction attraction) {
         return new AttractionDTO(
                 attraction.getId(),

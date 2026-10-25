@@ -1,6 +1,7 @@
 package com.project.guide.service;
 
 import com.project.guide.dto.AttractionDTO;
+import com.project.guide.dto.AttractionDetailDTO;
 import com.project.guide.dto.WikidataAttraction;
 import com.project.guide.dto.WikidataFetchResult;
 import com.project.guide.exception.AttractionNotFoundException;
@@ -104,6 +105,18 @@ class AttractionServiceTest {
         when(attractionRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(AttractionNotFoundException.class, () -> attractionService.getAttractionDetails(999L));
+    }
+
+    @Test
+    void testFindMoreInCountryExcludesTheAttractionItself() {
+        Attraction titicaca = Attraction.builder().id(2L).name("Titicaca")
+                .countries(new TreeSet<>(Set.of("Bolivia", "Peru"))).images(new ArrayList<>()).build();
+        when(attractionRepository.findByCountry("Peru")).thenReturn(List.of(testAttraction, titicaca));
+
+        var machuPicchu = AttractionDetailDTO.from(testAttraction);
+        List<AttractionDTO> more = attractionService.findMoreInCountry(machuPicchu, 3);
+
+        assertEquals(List.of("Titicaca"), more.stream().map(AttractionDTO::getName).toList());
     }
 
     @Test

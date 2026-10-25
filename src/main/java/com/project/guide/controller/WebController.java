@@ -15,14 +15,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequiredArgsConstructor
 public class WebController {
-    
+
+    private static final int MORE_IN_COUNTRY = 3;
+
     private final AttractionService attractionService;
-    
-    /**
-     * Home page - lists all attractions with filters.
-     */
+
     @GetMapping("/")
-    public String home(
+    public String home(Model model) {
+        model.addAttribute("countries", attractionService.getAllCountries());
+        return "home";
+    }
+
+    /**
+     * All attractions with country filter and search.
+     */
+    @GetMapping("/places")
+    public String places(
             @RequestParam(required = false) String country,
             @RequestParam(required = false) String search,
             Model model
@@ -31,23 +39,20 @@ public class WebController {
         model.addAttribute("countries", attractionService.getAllCountries());
         model.addAttribute("selectedCountry", country);
         model.addAttribute("searchTerm", search);
-        return "index";
+        return "places";
     }
-    
+
     /**
-     * Attraction details page.
+     * Attraction page; AttractionNotFoundException is rendered by error.html with status 404.
      */
     @GetMapping("/attraction/{id}")
     public String attractionDetails(@PathVariable Long id, Model model) {
-        // AttractionNotFoundException is rendered by error.html with status 404
         AttractionDetailDTO attraction = attractionService.getAttractionDetails(id);
         model.addAttribute("attraction", attraction);
+        model.addAttribute("more", attractionService.findMoreInCountry(attraction, MORE_IN_COUNTRY));
         return "detail";
     }
-    
-    /**
-     * Admin panel page.
-     */
+
     @GetMapping("/admin")
     public String adminPanel(Model model) {
         model.addAttribute("stats", attractionService.getStatistics());

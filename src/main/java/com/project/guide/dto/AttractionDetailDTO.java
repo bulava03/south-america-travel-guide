@@ -1,5 +1,6 @@
 package com.project.guide.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.project.guide.model.Attraction;
 import com.project.guide.model.AttractionImage;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,38 @@ public class AttractionDetailDTO {
     private String wikipediaUrl;
     private String wikidataUri;
     private List<String> additionalImages;
+
+    /**
+     * Photo for the attraction page, 1600 px wide.
+     */
+    public String getPhoto() {
+        return DisplayFormat.thumbnail(mainImage, 1600);
+    }
+
+    @JsonIgnore
+    public String getPhotoPage() {
+        return DisplayFormat.commonsPage(mainImage);
+    }
+    
+    @JsonIgnore
+    public String getWikidataPage() {
+        return DisplayFormat.wikidataPage(wikidataUri);
+    }
+    
+    @JsonIgnore
+    public String getMapUrl() {
+        return DisplayFormat.mapUrl(latitude, longitude);
+    }
+    
+    @JsonIgnore
+    public String getLatitudeText() {
+        return DisplayFormat.latitude(latitude);
+    }
+
+    @JsonIgnore
+    public String getLongitudeText() {
+        return DisplayFormat.longitude(longitude);
+    }
 
     public static AttractionDetailDTO from(Attraction attraction) {
         return new AttractionDetailDTO(

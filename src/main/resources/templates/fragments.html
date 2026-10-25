@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:fragment="pageHead(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">South America Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+
+<!-- Logo: a sun with a drop -->
+<a th:fragment="logo" class="logo" th:href="@{/}">
+    <svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true">
+        <circle cx="18" cy="18" r="16" fill="#FFC629"/>
+        <path d="M18 7c4 5 6 9 6 12a6 6 0 0 1-12 0c0-3 2-7 6-12z" fill="#0B3D66"/>
+    </svg>
+    <span>South America Guide</span>
+</a>
+
+<nav th:fragment="mainNav(active)" class="main-nav" aria-label="Main">
+    <a class="navlink" th:classappend="${active == 'places'} ? 'active'" th:href="@{/places}">Places</a>
+    <a class="navlink" th:href="@{/places}">Countries</a>
+    <a class="navlink" th:href="@{/swagger-ui.html}">API</a>
+</nav>
+
+<!-- Header of the inner pages -->
+<header th:fragment="siteHeader(active)" class="site-header">
+    <div class="container">
+        <a th:replace="~{fragments :: logo}"></a>
+        <nav th:replace="~{fragments :: mainNav(${active})}"></nav>
+    </div>
+</header>
+
+<footer th:fragment="siteFooter" class="site-footer">
+    <div class="container">
+        <span>Data: <a href="https://www.wikidata.org">Wikidata</a> ·
+            Texts: <a href="https://en.wikipedia.org">Wikipedia</a> (CC BY-SA) ·
+            Photos: <a href="https://commons.wikimedia.org">Wikimedia Commons</a></span>
+        <span>South America Guide</span>
+    </div>
+</footer>
+
+<!-- Main photo in a fixed 4:3 frame, filled according to the photo's size (see PhotoLayout) -->
+<div th:fragment="plate(a)" class="plate" th:switch="${a.photoLayout.name()}">
+    <img th:case="'COVER'" class="plate-cover" th:src="${a.thumbnail}" th:alt="${a.name}" loading="lazy">
+    <th:block th:case="'FIT'">
+        <img class="plate-blur" th:src="${a.thumbnail}" alt="" aria-hidden="true" loading="lazy">
+        <img class="plate-fit" th:src="${a.thumbnail}" th:alt="${a.name}" loading="lazy">
+    </th:block>
+    <th:block th:case="'PRINT'">
+        <div class="plate-print-bg"></div>
+        <img class="plate-print" th:src="${a.thumbnail}" th:alt="${a.name}" loading="lazy">
+    </th:block>
+    <th:block th:case="*">
+        <div class="plate-none"></div>
+        <span class="plate-none-name" th:text="${a.name}">Name</span>
+    </th:block>
+    <span class="type-tag" th:if="${a.type != null}" th:text="${a.type}">type</span>
+</div>
+
+<!-- Arrow icon -->
+<svg th:fragment="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M5 12h14M13 6l6 6-6 6"/>
+</svg>
+
+</body>
+</html>
