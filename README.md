@@ -38,26 +38,29 @@ springdoc-openapi, Docker Compose. Tests: JUnit 5, Mockito, Spring MockMvc, Play
 Requires Docker.
 
 ```bash
-cp .env.example .env    # then set your own DB_PASSWORD and ADMIN_PASSWORD
 docker compose up -d --build
 ```
 
 - Site: http://localhost:8080
-- Admin panel: http://localhost:8080/admin (`ADMIN_USERNAME` / `ADMIN_PASSWORD` from `.env`)
+- Admin panel: http://localhost:8080/admin (`admin` / `admin` by default)
 - API documentation: http://localhost:8080/swagger-ui.html
 
 On the first start the database is empty, so the app starts a sync with Wikidata in the background.
 It takes about a minute; the progress is shown in the admin panel.
 
-To run the app from an IDE, start only the database (`docker compose up -d mysql`): the app reads
-`.env`, and `DB_URL` there points to the container on port 3307.
+Without `.env` Compose uses dev defaults for the passwords. To set your own (and before any real
+deployment), copy `.env.example` to `.env` and change them; the database password is applied only
+when the MySQL volume is created, so for an existing one run `docker compose down -v` first.
+
+To run the app from an IDE, start only the database (`docker compose up -d mysql`) and copy
+`.env.example` to `.env`: the app reads it, and `DB_URL` there points to the container on port 3307.
 
 ### Configuration
 
 | Variable | Description |
 |---|---|
-| `DB_USERNAME`, `DB_PASSWORD` | MySQL user, created by the container on the first start |
-| `ADMIN_USERNAME`, `ADMIN_PASSWORD` | Admin panel login; the app does not start without the password |
+| `DB_USERNAME`, `DB_PASSWORD` | MySQL user, created by the container on the first start; dev defaults in Compose |
+| `ADMIN_USERNAME`, `ADMIN_PASSWORD` | Admin panel login, `admin` / `admin` in Compose by default; outside Compose the app does not start without the password |
 | `DB_URL` | JDBC URL, only needed outside Docker |
 | `SYNC_PER_COUNTRY_LIMIT` | Places per country, 25 by default |
 | `SYNC_MAX_PER_TYPE` | Places of one type per country, 4 by default |

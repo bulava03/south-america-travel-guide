@@ -1,14 +1,15 @@
 services:
   mysql:
     image: mysql:8.4
+    # Dev defaults so that `docker compose up` works without .env; set your own values in .env
     environment:
       MYSQL_DATABASE: south_america_guide
-      MYSQL_USER: ${DB_USERNAME:?DB_USERNAME is not set}
-      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is not set}
+      MYSQL_USER: ${DB_USERNAME:-guide}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-local-dev-only-change-me}
       MYSQL_RANDOM_ROOT_PASSWORD: "yes"
     ports:
-      # 3307 on the host, so it does not clash with a local MySQL
-      - "3307:3306"
+      # 3307 on the host, so it does not clash with a local MySQL; reachable only from this machine
+      - "127.0.0.1:3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
@@ -27,10 +28,10 @@ services:
         condition: service_healthy
     environment:
       DB_URL: jdbc:mysql://mysql:3306/south_america_guide?useSSL=false&allowPublicKeyRetrieval=true
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USERNAME: ${DB_USERNAME:-guide}
+      DB_PASSWORD: ${DB_PASSWORD:-local-dev-only-change-me}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is not set}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
       SYNC_PER_COUNTRY_LIMIT: ${SYNC_PER_COUNTRY_LIMIT:-25}
       SYNC_MAX_PER_TYPE: ${SYNC_MAX_PER_TYPE:-4}
     ports:
