@@ -32,7 +32,8 @@
                 }
                 return response.json().then(function (data) {
                     if (!response.ok) {
-                        throw new Error(data.message || response.statusText);
+                        // Errors are problem details (RFC 7807)
+                        throw new Error(data.detail || response.statusText);
                     }
                     return data;
                 });

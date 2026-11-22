@@ -96,7 +96,8 @@ class AdminControllerTest {
 
         mockMvc.perform(post("/api/admin/sync").with(csrf()))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("A sync is already running"));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("A sync is already running"));
     }
 
     @Test
@@ -105,7 +106,28 @@ class AdminControllerTest {
         doThrow(new IllegalArgumentException("Unknown country: Mexico")).when(syncService).startCountry("Mexico");
 
         mockMvc.perform(post("/api/admin/sync/Mexico").with(csrf()))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Unknown country: Mexico"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void testUnexpectedErrorDoesNotRevealItsMessage() throws Exception {
+        doThrow(new IllegalStateException("password=secret")).when(syncService).startAll();
+
+        mockMvc.perform(post("/api/admin/sync").with(csrf()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.detail").value("Unexpected error, see the server log"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void testUnreadableBodyReturnsBadRequest() throws Exception {
+        mockMvc.perform(patch("/api/admin/attractions/5").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{not json"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
     }
 
     @Test

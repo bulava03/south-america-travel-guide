@@ -184,7 +184,7 @@ test.describe('admin panel', () => {
 
     test('a second sync is refused while one is running', async ({ page }) => {
         await mockSync(page, request => request.method() === 'POST'
-            ? { status: 409, body: { status: 'error', message: 'A sync is already running' } }
+            ? { status: 409, body: { status: 409, title: 'Conflict', detail: 'A sync is already running' } }
             : status({}));
         await page.reload();
 

@@ -71,4 +71,11 @@ class AttractionApiControllerTest {
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.detail").value("Attraction not found with id: 999"));
     }
+
+    @Test
+    void testWrongIdTypeReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/attractions/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+    }
 }
