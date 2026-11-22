@@ -8,7 +8,7 @@ import java.util.List;
  * and the latest saved result of every country.
  *
  * @param running   a sync is in progress
- * @param stage     WIKIDATA, PHOTOS or SAVING while running; null if no sync ran since startup
+ * @param stage     WIKIDATA, PHOTOS, DESCRIPTIONS or SAVING while running; null if no sync ran since startup
  * @param result    changes of the finished run; null while running or after an error
  * @param error     why the run failed; nothing was changed then
  * @param countries every country from wikidata.yml, sorted by name

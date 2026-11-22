@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 /**
  * Runs the Wikidata sync in the background, for all countries or for one of them:
- * Wikidata -> photos on Commons -> saving. Only one sync runs at a time;
+ * Wikidata -> photos on Commons -> descriptions on Wikipedia -> saving. Only one sync runs at a time;
  * the admin panel polls {@link #status()} to show the progress.
  */
 @Service
@@ -33,6 +33,7 @@ public class SyncService {
 
     private final WikidataService wikidataService;
     private final PhotoService photoService;
+    private final WikipediaService wikipediaService;
     private final AttractionService attractionService;
     private final CountrySyncRepository countrySyncRepository;
     private final TaskExecutor taskExecutor;
@@ -79,6 +80,8 @@ public class SyncService {
             if (!result.isEmpty()) {
                 progress.stage(SyncProgress.Stage.PHOTOS);
                 photoService.selectPhotos(result.attractions());
+                progress.stage(SyncProgress.Stage.DESCRIPTIONS);
+                wikipediaService.addDescriptions(result.attractions());
             }
 
             progress.stage(SyncProgress.Stage.SAVING);

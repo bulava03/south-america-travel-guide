@@ -13,7 +13,7 @@ import java.util.Map;
  */
 class SyncProgress implements SyncListener {
 
-    enum Stage { WIKIDATA, PHOTOS, SAVING }
+    enum Stage { WIKIDATA, PHOTOS, DESCRIPTIONS, SAVING }
 
     /**
      * @param failedStep step at which a failed country stopped

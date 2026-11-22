@@ -23,6 +23,8 @@ public class WikidataAttraction {
     private Integer imageWidth;
     private Integer imageHeight;
     private String wikipediaUrl;
+    /** First paragraph of the Wikipedia article, set from Wikipedia; null if unknown. */
+    private String description;
     private int popularity;
 
     /**

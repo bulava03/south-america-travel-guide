@@ -11,7 +11,8 @@
     var POLL_MS = 1000;
     var STEPS = ['SEARCH', 'CANDIDATES', 'DETAILS'];
     var STEP_LABELS = { SEARCH: 'Search', CANDIDATES: 'Candidates', DETAILS: 'Details' };
-    var STAGES = [['WIKIDATA', 'Wikidata'], ['PHOTOS', 'Photos on Commons'], ['SAVING', 'Saving']];
+    var STAGES = [['WIKIDATA', 'Wikidata'], ['PHOTOS', 'Photos on Commons'],
+        ['DESCRIPTIONS', 'Descriptions on Wikipedia'], ['SAVING', 'Saving']];
 
     var wasRunning = false;
     var timer = null;
@@ -165,8 +166,8 @@
         var inRun = status.countries.filter(function (c) { return c.step; });
         var finished = inRun.filter(function (c) { return c.step === 'DONE' || c.step === 'FAILED'; }).length;
         var stageIndex = STAGES.map(function (s) { return s[0]; }).indexOf(status.stage);
-        // Wikidata takes most of the time: 90% of the bar, photos and saving the rest
-        var percent = stageIndex === 0 ? 90 * finished / Math.max(1, inRun.length) : 90 + 5 * stageIndex;
+        // Wikidata takes most of the time: 85% of the bar, photos, descriptions and saving the rest
+        var percent = stageIndex === 0 ? 85 * finished / Math.max(1, inRun.length) : 85 + 5 * stageIndex;
 
         var panel = el('div', 'sync-running');
         var head = el('div', 'sync-running-head');

@@ -1,6 +1,6 @@
 -- Test data for the Playwright tests, loaded only by docker-compose.e2e.yml.
 -- Covers every photo treatment (cover, whole photo, print, no photo), a place in two countries,
--- a hidden place and saved sync results of three countries. No Wikipedia links: pages make no requests.
+-- a hidden place and saved sync results of three countries. Descriptions are stored as the sync saves them.
 
 INSERT INTO attractions (id, wikidata_uri, name, type, latitude, longitude, main_image, main_image_width,
                          main_image_height, description, wikipedia_url, popularity, hidden)

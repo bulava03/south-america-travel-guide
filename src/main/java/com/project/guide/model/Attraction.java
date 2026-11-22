@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -89,9 +90,13 @@ public class Attraction {
     }
 
     /**
-     * Replaces all fields fetched from Wikidata; the first image becomes the main one.
+     * Replaces all fields fetched from Wikidata and Wikipedia; the first image becomes the main one.
+     * If the description of the same article was not fetched this time, the previous one is kept.
      */
     public void updateFrom(WikidataAttraction data) {
+        if (data.getDescription() != null || !Objects.equals(wikipediaUrl, data.getWikipediaUrl())) {
+            description = data.getDescription();
+        }
         wikidataUri = data.getUri();
         name = data.getName();
         type = data.getType();

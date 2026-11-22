@@ -42,7 +42,7 @@ public class AttractionApiController {
      * GET /api/attractions/{id}
      */
     @GetMapping("/attractions/{id}")
-    @Operation(summary = "Get attraction details", description = "Description is fetched from Wikipedia")
+    @Operation(summary = "Get attraction details", description = "Description is the first paragraph of the Wikipedia article, saved by the sync")
     public AttractionDetailDTO getAttraction(@PathVariable Long id) {
         return attractionService.getAttractionDetails(id);
     }

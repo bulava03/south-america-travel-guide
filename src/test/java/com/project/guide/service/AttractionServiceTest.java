@@ -46,9 +46,6 @@ class AttractionServiceTest {
     @Mock
     private CountrySyncRepository countrySyncRepository;
 
-    @Mock
-    private WikipediaService wikipediaService;
-
     @InjectMocks
     private AttractionService attractionService;
 
@@ -98,11 +95,9 @@ class AttractionServiceTest {
     }
 
     @Test
-    void testGetAttractionDetailsUsesWikipediaDescription() {
-        testAttraction.setWikipediaUrl("https://en.wikipedia.org/wiki/Machu_Picchu");
+    void testGetAttractionDetailsUsesSavedDescription() {
+        testAttraction.setDescription("Machu Picchu is a 15th-century Inca citadel.");
         when(attractionRepository.findById(1L)).thenReturn(Optional.of(testAttraction));
-        when(wikipediaService.fetchWikipediaExtract("https://en.wikipedia.org/wiki/Machu_Picchu"))
-                .thenReturn("Machu Picchu is a 15th-century Inca citadel.");
 
         var result = attractionService.getAttractionDetails(1L);
 
@@ -188,6 +183,7 @@ class AttractionServiceTest {
         assertEquals("http://example.com/a.jpg", attraction.getMainImage());
         assertEquals(1280, attraction.getMainImageWidth());
         assertEquals(789, attraction.getMainImageHeight());
+        assertEquals("Iguazu Falls are waterfalls.", attraction.getDescription());
         assertEquals(2, attraction.getImages().size());
         assertSame(attraction, attraction.getImages().get(0).getAttraction());
     }
@@ -218,6 +214,25 @@ class AttractionServiceTest {
 
         verify(attractionRepository, never()).deleteAll();
         verify(attractionRepository).deleteAll(List.of());
+    }
+
+    @Test
+    void testSaveKeepsDescriptionOfTheSameArticleWhenWikipediaFailed() {
+        testAttraction.setWikipediaUrl("https://en.wikipedia.org/wiki/Iguazu_Falls");
+        testAttraction.setDescription("Saved description.");
+        WikidataAttraction notFetched = wikidataAttraction(testAttraction.getWikidataUri(), "Machu Picchu", List.of());
+        notFetched.setDescription(null);
+        when(attractionRepository.findByWikidataUri(testAttraction.getWikidataUri()))
+                .thenReturn(Optional.of(testAttraction));
+        when(attractionRepository.findAll()).thenReturn(List.of(testAttraction));
+
+        attractionService.saveSyncResult(result(List.of(notFetched), Map.of("Peru", 1), Map.of()));
+        assertEquals("Saved description.", testAttraction.getDescription());
+
+        // Another article: the old description no longer fits
+        notFetched.setWikipediaUrl("https://en.wikipedia.org/wiki/Machu_Picchu");
+        attractionService.saveSyncResult(result(List.of(notFetched), Map.of("Peru", 1), Map.of()));
+        assertNull(testAttraction.getDescription());
     }
 
     @Test
@@ -340,6 +355,7 @@ class AttractionServiceTest {
         attraction.getImages().addAll(images);
         attraction.setImageWidth(1280);
         attraction.setImageHeight(789);
+        attraction.setDescription("Iguazu Falls are waterfalls.");
         return attraction;
     }
 }

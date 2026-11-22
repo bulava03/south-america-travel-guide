@@ -37,6 +37,9 @@ class SyncServiceTest {
     private PhotoService photoService;
 
     @Mock
+    private WikipediaService wikipediaService;
+
+    @Mock
     private AttractionService attractionService;
 
     @Mock
@@ -48,13 +51,13 @@ class SyncServiceTest {
 
     @BeforeEach
     void setUp() {
-        syncService = new SyncService(wikidataService, photoService, attractionService, countrySyncRepository, tasks::add);
+        syncService = new SyncService(wikidataService, photoService, wikipediaService, attractionService, countrySyncRepository, tasks::add);
         lenient().when(wikidataService.countryNames()).thenReturn(List.of("Chile", "Peru"));
         lenient().when(attractionService.findHiddenWikidataUris()).thenReturn(Set.of("http://www.wikidata.org/entity/Q2"));
     }
 
     @Test
-    void testSyncAllFetchesChecksPhotosAndSaves() {
+    void testSyncAllFetchesChecksPhotosAddsDescriptionsAndSaves() {
         WikidataFetchResult result = new WikidataFetchResult(
                 List.of(new WikidataAttraction()), Map.of("Peru", 1), Map.of("Chile", "timed out"));
         when(wikidataService.fetchAttractions(eq(List.of("Chile", "Peru")),
@@ -66,6 +69,7 @@ class SyncServiceTest {
         runTasks();
 
         verify(photoService).selectPhotos(result.attractions());
+        verify(wikipediaService).addDescriptions(result.attractions());
         SyncStatus status = syncService.status();
         assertFalse(status.running());
         assertEquals(new SyncSummary(1, 1, 0), status.result());
@@ -98,6 +102,7 @@ class SyncServiceTest {
         // Country results are still saved, attractions stay as they were
         verify(attractionService).saveSyncResult(result);
         verify(photoService, never()).selectPhotos(any());
+        verify(wikipediaService, never()).addDescriptions(any());
         SyncStatus status = syncService.status();
         assertFalse(status.running());
         assertNull(status.result());

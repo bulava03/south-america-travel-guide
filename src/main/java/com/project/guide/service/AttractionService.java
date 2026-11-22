@@ -40,7 +40,6 @@ public class AttractionService {
     private final AttractionRepository attractionRepository;
     private final AttractionImageRepository imageRepository;
     private final CountrySyncRepository countrySyncRepository;
-    private final WikipediaService wikipediaService;
 
     /**
      * Saves attractions fetched from Wikidata and the result of every country.
@@ -138,19 +137,13 @@ public class AttractionService {
     }
 
     /**
-     * Attraction details with the description fetched from Wikipedia; hidden attractions are not found.
+     * Attraction details with the description saved by the sync; hidden attractions are not found.
      */
     public AttractionDetailDTO getAttractionDetails(Long id) {
-        Attraction attraction = attractionRepository.findById(id)
+        return attractionRepository.findById(id)
                 .filter(found -> !found.isHidden())
+                .map(AttractionDetailDTO::from)
                 .orElseThrow(() -> new AttractionNotFoundException(id));
-
-        AttractionDetailDTO details = AttractionDetailDTO.from(attraction);
-        String wikipediaExtract = wikipediaService.fetchWikipediaExtract(attraction.getWikipediaUrl());
-        if (wikipediaExtract != null) {
-            details.setDescription(wikipediaExtract);
-        }
-        return details;
     }
 
     /**
