@@ -79,7 +79,8 @@ public class SyncService {
             WikidataFetchResult result = wikidataService.fetchAttractions(countries, hiddenUris, progress);
             if (!result.isEmpty()) {
                 progress.stage(SyncProgress.Stage.PHOTOS);
-                photoService.selectPhotos(result.attractions());
+                // Places without a photo are not saved; saved ones that lost their photo are removed
+                result = result.withAttractions(photoService.selectPhotos(result.attractions()));
                 progress.stage(SyncProgress.Stage.DESCRIPTIONS);
                 wikipediaService.addDescriptions(result.attractions());
             }

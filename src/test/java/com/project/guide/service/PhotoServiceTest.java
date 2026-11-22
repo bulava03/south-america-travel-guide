@@ -33,22 +33,23 @@ class PhotoServiceTest {
                 "Isla La Tortuga.jpg", new ImageInfo(640, 425, "image/jpeg")
         ));
 
-        photoService.selectPhotos(List.of(tortuga));
-
+        assertEquals(List.of(tortuga), photoService.selectPhotos(List.of(tortuga)));
         assertEquals(List.of(FILE_PATH + "Isla%20La%20Tortuga.jpg"), tortuga.getImages());
         assertEquals(640, tortuga.getImageWidth());
         assertEquals(425, tortuga.getImageHeight());
     }
 
     @Test
-    void testAttractionWithoutRealPhotoGetsNoImage() {
+    void testAttractionWithoutRealPhotoIsSkipped() {
         WikidataAttraction juncal = attraction(FILE_PATH + "JuncalNASA.png");
-        when(commonsClient.imageInfo(any())).thenReturn(Map.of("JuncalNASA.png", new ImageInfo(1024, 768, "image/png")));
+        WikidataAttraction deleted = attraction(FILE_PATH + "Deleted.jpg");
+        WikidataAttraction machuPicchu = attraction(FILE_PATH + "Machu%20Picchu.jpg");
+        when(commonsClient.imageInfo(any())).thenReturn(Map.of(
+                "JuncalNASA.png", new ImageInfo(1024, 768, "image/png"),
+                "Machu Picchu.jpg", JPEG
+        ));
 
-        photoService.selectPhotos(List.of(juncal));
-
-        assertTrue(juncal.getImages().isEmpty());
-        assertNull(juncal.getImageWidth());
+        assertEquals(List.of(machuPicchu), photoService.selectPhotos(List.of(juncal, deleted, machuPicchu)));
     }
 
     @Test
@@ -56,8 +57,7 @@ class PhotoServiceTest {
         WikidataAttraction machuPicchu = attraction(FILE_PATH + "Machu%20Picchu.jpg");
         when(commonsClient.imageInfo(any())).thenThrow(new IllegalStateException("Commons is down"));
 
-        photoService.selectPhotos(List.of(machuPicchu));
-
+        assertEquals(List.of(machuPicchu), photoService.selectPhotos(List.of(machuPicchu)));
         assertEquals(1, machuPicchu.getImages().size());
         assertNull(machuPicchu.getImageWidth());
     }

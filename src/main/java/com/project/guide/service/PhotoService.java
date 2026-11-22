@@ -36,8 +36,10 @@ public class PhotoService {
     /**
      * Removes images that are not photos and sets the main photo size.
      * If Commons is unavailable, images are kept and sizes stay unknown.
+     *
+     * @return attractions that have a photo; the others are not needed on the site
      */
-    public void selectPhotos(List<WikidataAttraction> attractions) {
+    public List<WikidataAttraction> selectPhotos(List<WikidataAttraction> attractions) {
         Map<String, ImageInfo> info;
         try {
             info = commonsClient.imageInfo(attractions.stream()
@@ -46,9 +48,10 @@ public class PhotoService {
                     .toList());
         } catch (RuntimeException e) {
             log.warn("Commons is unavailable, photos are not checked: {}", e.getMessage());
-            return;
+            return attractions;
         }
 
+        List<WikidataAttraction> withPhoto = new ArrayList<>();
         for (WikidataAttraction attraction : attractions) {
             List<String> photos = attraction.getImages().stream()
                     .filter(url -> isPhoto(fileName(url), info.get(fileName(url))))
@@ -57,12 +60,18 @@ public class PhotoService {
                 log.info("Not photos of {}: {}", attraction.getName(), attraction.getImages().stream()
                         .filter(url -> !photos.contains(url)).map(PhotoService::fileName).toList());
             }
+            if (photos.isEmpty()) {
+                log.info("{} has no photo and is skipped", attraction.getName());
+                continue;
+            }
             attraction.setImages(photos);
 
-            ImageInfo main = photos.isEmpty() ? null : info.get(fileName(photos.get(0)));
-            attraction.setImageWidth(main == null ? null : main.width());
-            attraction.setImageHeight(main == null ? null : main.height());
+            ImageInfo main = info.get(fileName(photos.get(0)));
+            attraction.setImageWidth(main.width());
+            attraction.setImageHeight(main.height());
+            withPhoto.add(attraction);
         }
+        return withPhoto;
     }
 
     /**

@@ -62,6 +62,7 @@ class SyncServiceTest {
                 List.of(new WikidataAttraction()), Map.of("Peru", 1), Map.of("Chile", "timed out"));
         when(wikidataService.fetchAttractions(eq(List.of("Chile", "Peru")),
                 eq(Set.of("http://www.wikidata.org/entity/Q2")), any())).thenReturn(result);
+        when(photoService.selectPhotos(result.attractions())).thenReturn(result.attractions());
         when(attractionService.saveSyncResult(result)).thenReturn(new SyncSummary(1, 1, 0));
 
         syncService.startAll();
@@ -75,6 +76,22 @@ class SyncServiceTest {
         assertEquals(new SyncSummary(1, 1, 0), status.result());
         assertNull(status.error());
         assertNotNull(status.finishedAt());
+    }
+
+    @Test
+    void testPlacesWithoutPhotoAreNotSaved() {
+        WikidataAttraction withPhoto = attraction("Machu Picchu", "Peru");
+        WikidataAttraction withoutPhoto = attraction("Juncal", "Peru", "Chile");
+        when(wikidataService.fetchAttractions(any(), any(), any())).thenReturn(new WikidataFetchResult(
+                List.of(withPhoto, withoutPhoto), Map.of("Peru", 2, "Chile", 1), Map.of()));
+        when(photoService.selectPhotos(List.of(withPhoto, withoutPhoto))).thenReturn(List.of(withPhoto));
+
+        syncService.startAll();
+        runTasks();
+
+        verify(wikipediaService).addDescriptions(List.of(withPhoto));
+        verify(attractionService).saveSyncResult(
+                new WikidataFetchResult(List.of(withPhoto), Map.of("Peru", 1, "Chile", 0), Map.of()));
     }
 
     @Test
@@ -147,5 +164,12 @@ class SyncServiceTest {
         List<Runnable> pending = List.copyOf(tasks);
         tasks.clear();
         pending.forEach(Runnable::run);
+    }
+
+    private static WikidataAttraction attraction(String name, String... countries) {
+        WikidataAttraction attraction = new WikidataAttraction();
+        attraction.setName(name);
+        attraction.getCountries().addAll(List.of(countries));
+        return attraction;
     }
 }

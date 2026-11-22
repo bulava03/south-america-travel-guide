@@ -1,7 +1,10 @@
 package com.project.guide.dto;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Result of fetching attractions from Wikidata.
@@ -18,6 +21,20 @@ public record WikidataFetchResult(
 
     public boolean isComplete() {
         return failedCountries.isEmpty();
+    }
+
+    /**
+     * The same result with only the given attractions; place counts of the countries are reduced
+     * by the attractions left out.
+     */
+    public WikidataFetchResult withAttractions(List<WikidataAttraction> kept) {
+        Set<WikidataAttraction> keptSet = new HashSet<>(kept);
+        Map<String, Integer> counts = new HashMap<>(fetchedCountries);
+        attractions.stream()
+                .filter(attraction -> !keptSet.contains(attraction))
+                .flatMap(attraction -> attraction.getCountries().stream())
+                .forEach(country -> counts.computeIfPresent(country, (key, count) -> count - 1));
+        return new WikidataFetchResult(kept, counts, failedCountries);
     }
 
     /**
