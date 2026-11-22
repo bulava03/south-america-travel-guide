@@ -80,8 +80,8 @@ class SyncServiceTest {
 
     @Test
     void testPlacesWithoutPhotoAreNotSaved() {
-        WikidataAttraction withPhoto = attraction("Machu Picchu", "Peru");
-        WikidataAttraction withoutPhoto = attraction("Juncal", "Peru", "Chile");
+        WikidataAttraction withPhoto = attraction("Q676203", "Machu Picchu", "Peru");
+        WikidataAttraction withoutPhoto = attraction("Q1", "Juncal", "Peru", "Chile");
         when(wikidataService.fetchAttractions(any(), any(), any())).thenReturn(new WikidataFetchResult(
                 List.of(withPhoto, withoutPhoto), Map.of("Peru", 2, "Chile", 1), Map.of()));
         when(photoService.selectPhotos(List.of(withPhoto, withoutPhoto))).thenReturn(List.of(withPhoto));
@@ -166,8 +166,9 @@ class SyncServiceTest {
         pending.forEach(Runnable::run);
     }
 
-    private static WikidataAttraction attraction(String name, String... countries) {
+    private static WikidataAttraction attraction(String entityId, String name, String... countries) {
         WikidataAttraction attraction = new WikidataAttraction();
+        attraction.setUri("http://www.wikidata.org/entity/" + entityId);
         attraction.setName(name);
         attraction.getCountries().addAll(List.of(countries));
         return attraction;

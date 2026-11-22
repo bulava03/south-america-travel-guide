@@ -1,10 +1,10 @@
 package com.project.guide.dto;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Result of fetching attractions from Wikidata.
@@ -28,10 +28,11 @@ public record WikidataFetchResult(
      * by the attractions left out.
      */
     public WikidataFetchResult withAttractions(List<WikidataAttraction> kept) {
-        Set<WikidataAttraction> keptSet = new HashSet<>(kept);
+        // By URI: WikidataAttraction is mutable, so its hashCode may change
+        Set<String> keptUris = kept.stream().map(WikidataAttraction::getUri).collect(Collectors.toSet());
         Map<String, Integer> counts = new HashMap<>(fetchedCountries);
         attractions.stream()
-                .filter(attraction -> !keptSet.contains(attraction))
+                .filter(attraction -> !keptUris.contains(attraction.getUri()))
                 .flatMap(attraction -> attraction.getCountries().stream())
                 .forEach(country -> counts.computeIfPresent(country, (key, count) -> count - 1));
         return new WikidataFetchResult(kept, counts, failedCountries);
