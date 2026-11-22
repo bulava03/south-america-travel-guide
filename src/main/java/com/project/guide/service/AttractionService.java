@@ -147,13 +147,14 @@ public class AttractionService {
     /**
      * The most popular other attractions of the attraction's first country.
      */
-    public List<AttractionDTO> findMoreInCountry(AttractionDetailDTO attraction, int limit) {
+    @Transactional(readOnly = true)
+    public List<AttractionDTO> findMoreInCountry(AttractionDTO attraction, int limit) {
         if (attraction.getCountries().isEmpty()) {
             return List.of();
         }
-        return findAttractions(attraction.getCountries().get(0), null).stream()
-                .filter(other -> !other.getId().equals(attraction.getId()))
-                .limit(limit)
+        return attractionRepository
+                .findOthersInCountry(attraction.getCountries().get(0), attraction.getId(), Limit.of(limit)).stream()
+                .map(AttractionDTO::from)
                 .toList();
     }
 

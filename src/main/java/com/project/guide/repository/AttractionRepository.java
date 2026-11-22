@@ -49,6 +49,13 @@ public interface AttractionRepository extends JpaRepository<Attraction, Long> {
     List<Attraction> findByCountry(@Param("country") String country);
 
     /**
+     * The most popular other visible attractions of a country. Countries are loaded lazily:
+     * fetching them in the same query would make Hibernate apply the limit in memory.
+     */
+    @Query("SELECT a FROM Attraction a WHERE :country MEMBER OF a.countries AND a.hidden = false AND a.id <> :excludedId ORDER BY a.popularity DESC")
+    List<Attraction> findOthersInCountry(@Param("country") String country, @Param("excludedId") Long excludedId, Limit limit);
+
+    /**
      * Searches visible attractions by name (case-insensitive).
      */
     @EntityGraph(attributePaths = "countries")

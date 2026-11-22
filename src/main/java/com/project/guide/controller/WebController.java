@@ -54,7 +54,7 @@ public class WebController {
     public String attractionDetails(@PathVariable Long id, Model model) {
         AttractionDetailDTO attraction = attractionService.getAttractionDetails(id);
         model.addAttribute("attraction", attraction);
-        model.addAttribute("more", attractionService.findMoreInCountry(attraction, MORE_IN_COUNTRY));
+        model.addAttribute("more", attractionService.findMoreInCountry(attraction.getCard(), MORE_IN_COUNTRY));
         return "detail";
     }
 

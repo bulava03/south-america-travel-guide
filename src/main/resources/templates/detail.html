@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head th:replace="~{fragments :: pageHead(${attraction.name} + ' - South America Guide')}"></head>
+<head th:replace="~{fragments :: pageHead(${attraction.card.name} + ' - South America Guide')}"></head>
 <body>
 <header th:replace="~{fragments :: siteHeader('')}"></header>
 
@@ -13,28 +13,28 @@
 
     <div class="detail">
         <!-- The whole photo is always visible: over its blurred copy, or as a print when it is small -->
-        <div class="detail-photo" th:switch="*{photoLayout.name()}">
+        <div class="detail-photo" th:switch="*{card.photoLayout.name()}">
             <th:block th:case="'NONE'">
                 <div class="plate-none"></div>
-                <span class="plate-none-name" th:text="*{name}">Name</span>
+                <span class="plate-none-name" th:text="*{card.name}">Name</span>
             </th:block>
             <th:block th:case="'PRINT'">
                 <div class="plate-print-bg"></div>
-                <img class="plate-print" th:src="*{photo}" th:alt="*{name}">
+                <img class="plate-print" th:src="*{photo}" th:alt="*{card.name}">
             </th:block>
             <th:block th:case="*">
                 <img class="plate-blur" th:src="*{photo}" alt="" aria-hidden="true">
-                <img class="plate-fit" th:src="*{photo}" th:alt="*{name}">
+                <img class="plate-fit" th:src="*{photo}" th:alt="*{card.name}">
             </th:block>
             <a class="photo-credit" th:if="*{photoPage != null}" th:href="*{photoPage}">Photo: Wikimedia Commons</a>
         </div>
 
         <div class="detail-info">
-            <span class="badge" th:if="*{type != null}" th:text="*{#strings.capitalize(type)}">Monument</span>
-            <h1 th:text="*{name}">Christ the Redeemer</h1>
+            <span class="badge" th:if="*{card.type != null}" th:text="*{#strings.capitalize(card.type)}">Monument</span>
+            <h1 th:text="*{card.name}">Christ the Redeemer</h1>
 
             <div class="chips">
-                <a class="chip" th:each="country : *{countries}" th:href="@{/places(country=${country})}">
+                <a class="chip" th:each="country : *{card.countries}" th:href="@{/places(country=${country})}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>
@@ -49,7 +49,7 @@
                     <a th:href="*{wikipediaUrl}">Wikipedia</a>, CC BY-SA</p>
             </th:block>
 
-            <div class="facts" th:if="*{latitude != null}">
+            <div class="facts" th:if="*{card.latitude != null}">
                 <div class="fact">
                     <span class="fact-label">Latitude</span>
                     <span class="fact-value" th:text="*{latitudeText}">22.9519° S</span>
@@ -69,7 +69,7 @@
     </div>
 
     <section class="more" th:unless="${#lists.isEmpty(more)}" aria-labelledby="more-title">
-        <h2 id="more-title" th:text="'More in ' + *{countries[0]}">More in Brazil</h2>
+        <h2 id="more-title" th:text="'More in ' + *{card.countries[0]}">More in Brazil</h2>
         <div class="more-cards">
             <a class="mini" th:each="m : ${more}" th:href="@{/attraction/{id}(id=${m.id})}">
                 <span class="mini-photo"><img th:if="${m.image != null}" th:src="${m.smallThumbnail}" alt="" loading="lazy"></span>

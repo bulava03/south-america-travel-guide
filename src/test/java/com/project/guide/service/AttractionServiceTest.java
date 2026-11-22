@@ -3,7 +3,6 @@ package com.project.guide.service;
 import com.project.guide.dto.AdminAttractionDTO;
 import com.project.guide.dto.AdminFilter;
 import com.project.guide.dto.AttractionDTO;
-import com.project.guide.dto.AttractionDetailDTO;
 import com.project.guide.dto.SyncSummary;
 import com.project.guide.dto.WikidataAttraction;
 import com.project.guide.dto.WikidataFetchResult;
@@ -94,8 +93,8 @@ class AttractionServiceTest {
 
         var result = attractionService.getAttractionDetails(1L);
 
-        assertEquals("Machu Picchu", result.getName());
-        assertEquals(List.of("Peru"), result.getCountries());
+        assertEquals("Machu Picchu", result.getCard().getName());
+        assertEquals(List.of("Peru"), result.getCard().getCountries());
         assertEquals("Machu Picchu is a 15th-century Inca citadel.", result.getDescription());
     }
 
@@ -136,13 +135,12 @@ class AttractionServiceTest {
     }
 
     @Test
-    void testFindMoreInCountryExcludesTheAttractionItself() {
+    void testFindMoreInCountryAsksTheDatabaseForOthersWithLimit() {
         Attraction titicaca = Attraction.builder().id(2L).name("Titicaca")
                 .countries(new TreeSet<>(Set.of("Bolivia", "Peru"))).build();
-        when(attractionRepository.findByCountry("Peru")).thenReturn(List.of(testAttraction, titicaca));
+        when(attractionRepository.findOthersInCountry("Peru", 1L, Limit.of(3))).thenReturn(List.of(titicaca));
 
-        var machuPicchu = AttractionDetailDTO.from(testAttraction);
-        List<AttractionDTO> more = attractionService.findMoreInCountry(machuPicchu, 3);
+        List<AttractionDTO> more = attractionService.findMoreInCountry(AttractionDTO.from(testAttraction), 3);
 
         assertEquals(List.of("Titicaca"), more.stream().map(AttractionDTO::getName).toList());
     }

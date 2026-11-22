@@ -1,74 +1,59 @@
 package com.project.guide.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.project.guide.model.Attraction;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
+import lombok.Getter;
 
 /**
- * DTO for Attraction detail view (complete information).
+ * Attraction page: the card data plus the description and links.
+ * In JSON the card fields stay on the top level.
  */
-@Data
-@NoArgsConstructor
+@Getter
 @AllArgsConstructor
 public class AttractionDetailDTO {
-    private Long id;
-    private String name;
-    private String type;
-    private List<String> countries;
-    private Double latitude;
-    private Double longitude;
-    private String image;
-    private PhotoLayout photoLayout;
-    private String description;
-    private String wikipediaUrl;
-    private String wikidataUri;
+    @JsonUnwrapped
+    private final AttractionDTO card;
+    private final String description;
+    private final String wikipediaUrl;
+    private final String wikidataUri;
 
     /**
      * Photo for the attraction page, 1600 px wide.
      */
     public String getPhoto() {
-        return DisplayFormat.thumbnail(image, 1600);
+        return DisplayFormat.thumbnail(card.getImage(), 1600);
     }
 
     @JsonIgnore
     public String getPhotoPage() {
-        return DisplayFormat.commonsPage(image);
+        return DisplayFormat.commonsPage(card.getImage());
     }
-    
+
     @JsonIgnore
     public String getWikidataPage() {
         return DisplayFormat.wikidataPage(wikidataUri);
     }
-    
+
     @JsonIgnore
     public String getMapUrl() {
-        return DisplayFormat.mapUrl(latitude, longitude);
+        return DisplayFormat.mapUrl(card.getLatitude(), card.getLongitude());
     }
-    
+
     @JsonIgnore
     public String getLatitudeText() {
-        return DisplayFormat.latitude(latitude);
+        return DisplayFormat.latitude(card.getLatitude());
     }
 
     @JsonIgnore
     public String getLongitudeText() {
-        return DisplayFormat.longitude(longitude);
+        return DisplayFormat.longitude(card.getLongitude());
     }
 
     public static AttractionDetailDTO from(Attraction attraction) {
         return new AttractionDetailDTO(
-                attraction.getId(),
-                attraction.getName(),
-                attraction.getType(),
-                attraction.getCountries().stream().sorted().toList(),
-                attraction.getLatitude(),
-                attraction.getLongitude(),
-                attraction.getImage(),
-                PhotoLayout.of(attraction.getImage(), attraction.getImageWidth(), attraction.getImageHeight()),
+                AttractionDTO.from(attraction),
                 attraction.getDescription(),
                 attraction.getWikipediaUrl(),
                 attraction.getWikidataUri()
