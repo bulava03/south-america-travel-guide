@@ -212,11 +212,13 @@ h1, h2 {
     padding-bottom: 56px;
 }
 
+/* The free space is split above and below the text, so it is not pressed against the country chips */
 .hero-text {
     display: flex;
     flex-direction: column;
     gap: 20px;
     max-width: 760px;
+    margin-block: auto;
 }
 
 .hero h1 {
