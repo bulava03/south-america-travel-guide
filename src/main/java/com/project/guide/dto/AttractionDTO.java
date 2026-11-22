@@ -1,5 +1,6 @@
 package com.project.guide.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.project.guide.model.Attraction;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,20 +22,23 @@ public class AttractionDTO {
     private Double latitude;
     private Double longitude;
     private String image;
+    /** Width of the original photo, null if unknown. */
+    @JsonIgnore
+    private Integer imageWidth;
     private PhotoLayout photoLayout;
 
     /**
-     * Photo for a card, 800 px wide.
+     * Photo for a card, 960 px wide.
      */
     public String getThumbnail() {
-        return DisplayFormat.thumbnail(image, 800);
+        return DisplayFormat.thumbnail(image, imageWidth, 960);
     }
     
     /**
-     * Photo for small cards, 200 px wide.
+     * Photo for small cards, 250 px wide.
      */
     public String getSmallThumbnail() {
-        return DisplayFormat.thumbnail(image, 200);
+        return DisplayFormat.thumbnail(image, imageWidth, 250);
     }
 
     public static AttractionDTO from(Attraction attraction) {
@@ -46,6 +50,7 @@ public class AttractionDTO {
                 attraction.getLatitude(),
                 attraction.getLongitude(),
                 attraction.getImage(),
+                attraction.getImageWidth(),
                 PhotoLayout.of(attraction.getImage(), attraction.getImageWidth(), attraction.getImageHeight())
         );
     }

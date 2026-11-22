@@ -17,10 +17,10 @@ public class AdminAttractionDTO {
     private final Integer photoHeight;
 
     /**
-     * Whole photo for the preview, 1600 px wide.
+     * Whole photo for the preview, 1920 px wide.
      */
     public String getPhoto() {
-        return DisplayFormat.thumbnail(card.getImage(), 1600);
+        return DisplayFormat.thumbnail(card.getImage(), card.getImageWidth(), 1920);
     }
 
     public String getPhotoPage() {

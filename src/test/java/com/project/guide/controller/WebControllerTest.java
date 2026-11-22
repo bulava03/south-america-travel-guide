@@ -63,7 +63,7 @@ class WebControllerTest {
     @Test
     void testPlacesPage() throws Exception {
         when(attractionService.findAttractions("Peru", null)).thenReturn(List.of(new AttractionDTO(
-                1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450, "http://example.com/a.jpg", PhotoLayout.COVER
+                1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450, "http://example.com/a.jpg", null, PhotoLayout.COVER
         )));
         when(attractionService.getAllCountries()).thenReturn(List.of("Chile", "Peru"));
 
@@ -72,19 +72,19 @@ class WebControllerTest {
                 .andExpect(model().attribute("selectedCountry", "Peru"))
                 .andExpect(content().string(containsString("Machu Picchu")))
                 // a thumbnail instead of the original file
-                .andExpect(content().string(containsString("https://example.com/a.jpg?width=800")));
+                .andExpect(content().string(containsString("https://example.com/a.jpg?width=960")));
     }
 
     @Test
     void testAttractionDetailsPage() throws Exception {
         when(attractionService.getAttractionDetails(1L)).thenReturn(new AttractionDetailDTO(
                 new AttractionDTO(1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450,
-                        "http://example.com/a.jpg", PhotoLayout.COVER),
+                        "http://example.com/a.jpg", null, PhotoLayout.COVER),
                 "Inca citadel", "https://en.wikipedia.org/wiki/Machu_Picchu", "http://www.wikidata.org/entity/Q676203"
         ));
 
         when(attractionService.findMoreInCountry(any(), anyInt())).thenReturn(List.of(new AttractionDTO(
-                2L, "Titicaca", "lake", List.of("Bolivia", "Peru"), -15.825, -69.325, null, PhotoLayout.NONE
+                2L, "Titicaca", "lake", List.of("Bolivia", "Peru"), -15.825, -69.325, null, null, PhotoLayout.NONE
         )));
 
         mockMvc.perform(get("/attraction/1"))
@@ -118,7 +118,7 @@ class WebControllerTest {
                 2, 1, 1, List.of("Brazil"), 1, List.of("Venezuela"), 12));
         AttractionDTO christ = new AttractionDTO(
                 3L, "Christ the Redeemer", "monument", List.of("Brazil"), -22.95, -43.21,
-                "http://commons.wikimedia.org/wiki/Special:FilePath/Christ.jpg", PhotoLayout.FIT);
+                "http://commons.wikimedia.org/wiki/Special:FilePath/Christ.jpg", null, PhotoLayout.FIT);
         when(attractionService.findForAdmin(null, "Brazil", AdminFilter.HIDDEN))
                 .thenReturn(List.of(new AdminAttractionDTO(christ, 92, true, 2667, 4000)));
         when(wikidataService.countryNames()).thenReturn(List.of("Brazil", "Peru"));

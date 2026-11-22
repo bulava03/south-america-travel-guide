@@ -84,7 +84,7 @@ test.describe('places', () => {
 
         // Landscape: cropped thumbnail instead of the original file
         await expect(card('Machu Picchu').locator('img.plate-cover')).toHaveAttribute('src',
-            'https://commons.wikimedia.org/wiki/Special:FilePath/E2E%20Machu%20Picchu.jpg?width=800');
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/E2E_Machu_Picchu.jpg/960px-E2E_Machu_Picchu.jpg');
         // Vertical and panorama: whole photo over its blurred copy
         await expect(card('Christ the Redeemer').locator('img.plate-fit')).toBeVisible();
         await expect(card('Laguna Colorada').locator('img.plate-blur')).toHaveCount(1);
@@ -95,7 +95,7 @@ test.describe('places', () => {
     });
 
     test('a photo that fails to load is replaced by the name on green', async ({ page }) => {
-        await page.route(/E2E%20Machu%20Picchu\.jpg/, route => route.fulfill({ status: 404 }));
+        await page.route(/E2E_Machu_Picchu\.jpg/, route => route.fulfill({ status: 404 }));
 
         await page.goto('/places');
         const card = page.locator('.card', { hasText: 'Machu Picchu' });
@@ -156,7 +156,7 @@ test.describe('attraction page', () => {
     test('the whole photo is shown, not cropped', async ({ page }) => {
         await page.goto('/attraction/3');
 
-        await expect(page.locator('.detail-photo img.plate-fit')).toHaveAttribute('src', /\?width=1600$/);
+        await expect(page.locator('.detail-photo img.plate-fit')).toHaveAttribute('src', /\/1920px-E2E_Christ\.jpg$/);
     });
 
     test('"All places" goes back to the list', async ({ page }) => {

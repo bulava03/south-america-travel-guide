@@ -20,10 +20,10 @@ public class AttractionDetailDTO {
     private final String wikidataUri;
 
     /**
-     * Photo for the attraction page, 1600 px wide.
+     * Photo for the attraction page, 1920 px wide.
      */
     public String getPhoto() {
-        return DisplayFormat.thumbnail(card.getImage(), 1600);
+        return DisplayFormat.thumbnail(card.getImage(), card.getImageWidth(), 1920);
     }
 
     @JsonIgnore

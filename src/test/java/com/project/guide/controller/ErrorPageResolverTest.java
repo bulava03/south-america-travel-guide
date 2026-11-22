@@ -63,7 +63,7 @@ class ErrorPageResolverTest {
     @Test
     void testNotFoundPageLinksToMostVisitedPlaces() throws Exception {
         when(attractionService.findMostVisited(anyInt())).thenReturn(List.of(new AttractionDTO(
-                1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450, null, PhotoLayout.NONE
+                1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450, null, null, PhotoLayout.NONE
         )));
 
         mockMvc.perform(get("/test-error/404"))

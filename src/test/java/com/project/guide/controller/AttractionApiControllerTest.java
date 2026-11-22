@@ -36,7 +36,7 @@ class AttractionApiControllerTest {
     @Test
     void testGetAttractionsWithFilters() throws Exception {
         when(attractionService.findAttractions("Peru", "Machu")).thenReturn(List.of(new AttractionDTO(
-                1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450, "http://example.com/a.jpg", PhotoLayout.COVER
+                1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450, "http://example.com/a.jpg", null, PhotoLayout.COVER
         )));
 
         mockMvc.perform(get("/api/attractions").param("country", "Peru").param("search", "Machu"))
@@ -50,7 +50,7 @@ class AttractionApiControllerTest {
     void testGetAttractionDetails() throws Exception {
         when(attractionService.getAttractionDetails(1L)).thenReturn(new AttractionDetailDTO(
                 new AttractionDTO(1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450,
-                        "http://example.com/a.jpg", PhotoLayout.COVER),
+                        "http://example.com/a.jpg", null, PhotoLayout.COVER),
                 "Inca citadel", "https://en.wikipedia.org/wiki/Machu_Picchu", "http://www.wikidata.org/entity/Q676203"
         ));
 

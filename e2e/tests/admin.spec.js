@@ -235,7 +235,7 @@ test.describe('admin panel', () => {
 
         await expect(preview).toBeVisible();
         await expect(preview.locator('.preview-card .card-name')).toHaveText('Christ the Redeemer');
-        await expect(preview.locator('.preview-full img')).toHaveAttribute('src', /E2E%20Christ\.jpg\?width=1600$/);
+        await expect(preview.locator('.preview-full img')).toHaveAttribute('src', /\/1920px-E2E_Christ\.jpg$/);
         await expect(preview.locator('.preview-note')).toContainText('2667 × 4000 px');
         await expect(preview.getByRole('link', { name: 'Open on Commons' }))
             .toHaveAttribute('href', 'https://commons.wikimedia.org/wiki/File:E2E%20Christ.jpg');
