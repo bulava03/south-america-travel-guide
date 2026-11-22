@@ -2,6 +2,7 @@ package com.project.guide.service;
 
 import com.project.guide.dto.AdminAttractionDTO;
 import com.project.guide.dto.AdminFilter;
+import com.project.guide.dto.AdminStatistics;
 import com.project.guide.dto.AttractionDTO;
 import com.project.guide.dto.AttractionDetailDTO;
 import com.project.guide.dto.SyncSummary;
@@ -23,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -172,10 +172,9 @@ public class AttractionService {
     }
 
     /**
-     * Numbers for the admin panel; "countries" are the countries shown on the site,
-     * "syncedCountryCount" the countries with a saved sync result (none before the first sync).
+     * Numbers for the admin panel.
      */
-    public Map<String, Object> getStatistics() {
+    public AdminStatistics getStatistics() {
         List<String> countries = attractionRepository.findAllDistinctCountries();
         long total = attractionRepository.count();
         long hidden = attractionRepository.countByHiddenTrue();
@@ -185,14 +184,7 @@ public class AttractionService {
                 .map(CountrySync::getCountry)
                 .sorted()
                 .toList();
-        return Map.of(
-                "totalAttractions", total,
-                "visibleAttractions", total - hidden,
-                "hiddenAttractions", hidden,
-                "countries", countries,
-                "countryCount", countries.size(),
-                "failedCountries", failedCountries,
-                "syncedCountryCount", syncs.size()
-        );
+        return new AdminStatistics(total, total - hidden, hidden,
+                countries, countries.size(), failedCountries, syncs.size());
     }
 }

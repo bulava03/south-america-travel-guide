@@ -1,5 +1,6 @@
 package com.project.guide.controller;
 
+import com.project.guide.dto.AdminStatistics;
 import com.project.guide.dto.SyncStatus;
 import com.project.guide.exception.AttractionNotFoundException;
 import com.project.guide.exception.SyncInProgressException;
@@ -58,7 +59,7 @@ public class AdminController {
     }
 
     @GetMapping("/stats")
-    public Map<String, Object> getStatistics() {
+    public AdminStatistics getStatistics() {
         return attractionService.getStatistics();
     }
 

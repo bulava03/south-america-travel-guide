@@ -1,6 +1,7 @@
 package com.project.guide.controller;
 
 import com.project.guide.config.SecurityConfig;
+import com.project.guide.dto.AdminStatistics;
 import com.project.guide.dto.AdminAttractionDTO;
 import com.project.guide.dto.AdminFilter;
 import com.project.guide.dto.AttractionDTO;
@@ -19,7 +20,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
@@ -114,15 +114,8 @@ class WebControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     void testAdminPageForAdmin() throws Exception {
-        when(attractionService.getStatistics()).thenReturn(Map.of(
-                "totalAttractions", 2L,
-                "visibleAttractions", 1L,
-                "hiddenAttractions", 1L,
-                "countries", List.of("Brazil"),
-                "countryCount", 1,
-                "failedCountries", List.of("Venezuela"),
-                "syncedCountryCount", 12
-        ));
+        when(attractionService.getStatistics()).thenReturn(new AdminStatistics(
+                2, 1, 1, List.of("Brazil"), 1, List.of("Venezuela"), 12));
         AttractionDTO christ = new AttractionDTO(
                 3L, "Christ the Redeemer", "monument", List.of("Brazil"), -22.95, -43.21,
                 "http://commons.wikimedia.org/wiki/Special:FilePath/Christ.jpg", PhotoLayout.FIT);
@@ -134,6 +127,7 @@ class WebControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin"))
                 .andExpect(content().string(containsString("1 failed last time")))
+                .andExpect(content().string(containsString("Visible · 1")))
                 .andExpect(content().string(containsString("Christ the Redeemer")))
                 .andExpect(content().string(containsString("Whole photo")))
                 .andExpect(content().string(containsString("2667 × 4000 px")))

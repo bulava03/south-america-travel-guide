@@ -1,6 +1,6 @@
 package com.project.guide.config;
 
-import com.project.guide.service.AttractionService;
+import com.project.guide.repository.AttractionRepository;
 import com.project.guide.service.SyncService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
     
-    private final AttractionService attractionService;
+    private final AttractionRepository attractionRepository;
     private final SyncService syncService;
     
     @Value("${app.init.data-on-startup:true}")
@@ -31,9 +31,8 @@ public class DataInitializer implements CommandLineRunner {
         }
         
         try {
-            var stats = attractionService.getStatistics();
-            long totalAttractions = (long) stats.get("totalAttractions");
-            
+            long totalAttractions = attractionRepository.count();
+
             if (totalAttractions == 0) {
                 log.info("Database is empty. Starting initial data load from Wikidata in the background");
                 syncService.startAll();

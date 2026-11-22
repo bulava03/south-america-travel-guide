@@ -1,6 +1,7 @@
 package com.project.guide.controller;
 
 import com.project.guide.config.SecurityConfig;
+import com.project.guide.dto.AdminStatistics;
 import com.project.guide.dto.SyncStatus;
 import com.project.guide.exception.AttractionNotFoundException;
 import com.project.guide.exception.SyncInProgressException;
@@ -16,7 +17,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -132,11 +132,8 @@ class AdminControllerTest {
 
     @Test
     void testStatsWithHttpBasicCredentials() throws Exception {
-        when(attractionService.getStatistics()).thenReturn(Map.of(
-                "totalAttractions", 2L,
-                "countries", List.of("Argentina", "Brazil"),
-                "countryCount", 2
-        ));
+        when(attractionService.getStatistics()).thenReturn(new AdminStatistics(
+                2, 2, 0, List.of("Argentina", "Brazil"), 2, List.of(), 2));
 
         mockMvc.perform(get("/api/admin/stats").with(httpBasic("admin", "test")))
                 .andExpect(status().isOk())
