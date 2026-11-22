@@ -214,10 +214,6 @@ test.describe('admin panel', () => {
         // A hidden place has no page on the site
         await expect(rows.first().getByRole('link', { name: 'Colón Theater' })).toHaveCount(0);
 
-        await page.getByRole('link', { name: 'No photo · 1' }).click();
-        await expect(rows).toHaveCount(1);
-        await expect(rows.first()).toContainText('La Tortuga Island');
-
         await page.getByRole('link', { name: 'All · 9' }).click();
         await page.getByLabel('Country').selectOption('Bolivia');
         await expect(page).toHaveURL(/country=Bolivia/);

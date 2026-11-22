@@ -179,7 +179,6 @@ public class AttractionService {
         List<String> countries = attractionRepository.findAllDistinctCountries();
         long total = attractionRepository.count();
         long hidden = attractionRepository.countByHiddenTrue();
-        long withoutPhoto = attractionRepository.countByImageIsNull();
         List<CountrySync> syncs = countrySyncRepository.findAll();
         List<String> failedCountries = syncs.stream()
                 .filter(sync -> !sync.isSucceeded())
@@ -190,8 +189,6 @@ public class AttractionService {
                 "totalAttractions", total,
                 "visibleAttractions", total - hidden,
                 "hiddenAttractions", hidden,
-                "withPhoto", total - withoutPhoto,
-                "withoutPhoto", withoutPhoto,
                 "countries", countries,
                 "countryCount", countries.size(),
                 "failedCountries", failedCountries,

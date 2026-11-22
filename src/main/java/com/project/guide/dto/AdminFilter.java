@@ -10,8 +10,7 @@ import java.util.function.Predicate;
 public enum AdminFilter {
     ALL(attraction -> true),
     VISIBLE(attraction -> !attraction.isHidden()),
-    HIDDEN(Attraction::isHidden),
-    NO_PHOTO(attraction -> attraction.getImage() == null);
+    HIDDEN(Attraction::isHidden);
 
     private final Predicate<Attraction> condition;
 

@@ -118,8 +118,6 @@ class WebControllerTest {
                 "totalAttractions", 2L,
                 "visibleAttractions", 1L,
                 "hiddenAttractions", 1L,
-                "withoutPhoto", 0L,
-                "withPhoto", 2L,
                 "countries", List.of("Brazil"),
                 "countryCount", 1,
                 "failedCountries", List.of("Venezuela"),

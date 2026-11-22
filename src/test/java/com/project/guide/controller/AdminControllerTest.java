@@ -134,7 +134,6 @@ class AdminControllerTest {
     void testStatsWithHttpBasicCredentials() throws Exception {
         when(attractionService.getStatistics()).thenReturn(Map.of(
                 "totalAttractions", 2L,
-                "withPhoto", 5L,
                 "countries", List.of("Argentina", "Brazil"),
                 "countryCount", 2
         ));
