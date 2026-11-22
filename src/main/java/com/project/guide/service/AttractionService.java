@@ -24,7 +24,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -55,21 +57,27 @@ public class AttractionService {
             return new SyncSummary(0, 0, 0);
         }
 
-        int created = 0;
+        // One query with countries instead of a lookup per attraction and a lazy load per collection
+        Map<String, Attraction> existing = attractionRepository.findAllByOrderByPopularityDesc().stream()
+                .collect(Collectors.toMap(Attraction::getWikidataUri, Function.identity()));
+
+        List<Attraction> created = new ArrayList<>();
         for (WikidataAttraction data : result.attractions()) {
-            Attraction attraction = attractionRepository.findByWikidataUri(data.getUri()).orElseGet(Attraction::new);
-            if (attraction.getId() == null) {
-                created++;
+            Attraction attraction = existing.get(data.getUri());
+            if (attraction == null) {
+                attraction = new Attraction();
+                created.add(attraction);
             }
             attraction.updateFrom(data);
-            attractionRepository.save(attraction);
         }
+        // Existing attractions are managed and saved on commit
+        attractionRepository.saveAll(created);
 
         Set<String> fetchedUris = result.attractions().stream()
                 .map(WikidataAttraction::getUri)
                 .collect(Collectors.toSet());
         Set<String> fetchedCountries = result.fetchedCountries().keySet();
-        List<Attraction> outdated = attractionRepository.findAll().stream()
+        List<Attraction> outdated = existing.values().stream()
                 .filter(attraction -> !attraction.isHidden())
                 .filter(attraction -> !fetchedUris.contains(attraction.getWikidataUri()))
                 .filter(attraction -> fetchedCountries.containsAll(attraction.getCountries()))
@@ -77,8 +85,9 @@ public class AttractionService {
         attractionRepository.deleteAll(outdated);
 
         log.info("Synchronization complete. Created: {}, Updated: {}, Removed: {}, Failed countries: {}",
-                created, result.attractions().size() - created, outdated.size(), result.failedCountries().keySet());
-        return new SyncSummary(result.attractions().size(), created, outdated.size());
+                created.size(), result.attractions().size() - created.size(), outdated.size(),
+                result.failedCountries().keySet());
+        return new SyncSummary(result.attractions().size(), created.size(), outdated.size());
     }
 
     private void saveCountryResults(WikidataFetchResult result) {

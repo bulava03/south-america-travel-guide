@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Repository interface for Attraction entity.
@@ -18,11 +17,6 @@ import java.util.Optional;
  */
 @Repository
 public interface AttractionRepository extends JpaRepository<Attraction, Long> {
-
-    /**
-     * Finds an attraction by its Wikidata URI.
-     */
-    Optional<Attraction> findByWikidataUri(String wikidataUri);
 
     /**
      * Finds all attractions including hidden ones, most popular first.
