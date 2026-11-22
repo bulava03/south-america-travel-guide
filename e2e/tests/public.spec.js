@@ -94,6 +94,19 @@ test.describe('places', () => {
         await expect(card('La Tortuga Island').locator('.plate-none-name')).toHaveText('La Tortuga Island');
     });
 
+    test('a photo that fails to load is replaced by the name on green', async ({ page }) => {
+        await page.route(/E2E%20Machu%20Picchu\.jpg/, route => route.fulfill({ status: 404 }));
+
+        await page.goto('/places');
+        const card = page.locator('.card', { hasText: 'Machu Picchu' });
+        await expect(card.locator('.plate-none-name')).toHaveText('Machu Picchu');
+        await expect(card.locator('img')).toHaveCount(0);
+
+        await page.goto('/attraction/1');
+        await expect(page.locator('.detail-photo .plate-none-name')).toHaveText('Machu Picchu');
+        await expect(page.getByRole('link', { name: 'Photo: Wikimedia Commons' })).toHaveCount(0);
+    });
+
     test('chips turn green on hover', async ({ page }) => {
         await page.goto('/places');
         const chip = page.locator('.chips').getByRole('link', { name: 'Peru' });
