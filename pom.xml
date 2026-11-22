@@ -67,12 +67,11 @@
             <scope>runtime</scope>
         </dependency>
         
-        <!-- Apache Jena for SPARQL -->
+        <!-- Apache Jena SPARQL client (ARQ only, without the TDB, SHACL and ShEx modules) -->
         <dependency>
             <groupId>org.apache.jena</groupId>
-            <artifactId>apache-jena-libs</artifactId>
+            <artifactId>jena-arq</artifactId>
             <version>4.10.0</version>
-            <type>pom</type>
         </dependency>
         
         <!-- OpenAPI / Swagger UI -->
