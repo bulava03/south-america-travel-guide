@@ -10,7 +10,6 @@ const test = base.test.extend({
     page: async ({ page }, use) => {
         await page.route(/^https:\/\/(commons|upload)\.wikimedia\.org\//, route =>
             route.fulfill({ contentType: 'image/svg+xml', body: PHOTO }));
-        await page.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, route => route.abort());
         await use(page);
     },
 });

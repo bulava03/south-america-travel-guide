@@ -173,3 +173,6 @@ The code is under the [MIT License](LICENSE). The data shown on the site comes f
 - Home page photo: [Aerial view of Iguazu Falls](https://commons.wikimedia.org/wiki/File:Aerial_Foz_de_Igua%C3%A7u_26_Nov_2005.jpg);
   error pages: [Salar de Uyuni](https://commons.wikimedia.org/wiki/File:Salar_de_Uyuni_-_panoramio_(10).jpg) and
   [Torres del Paine](https://commons.wikimedia.org/wiki/File:Torres_del_Paine,_Laguna_Azul_09.jpg), Wikimedia Commons.
+- Fonts: [Bricolage Grotesque](https://github.com/ateliertriay/bricolage) and
+  [Plus Jakarta Sans](https://github.com/tokotype/PlusJakartaSans), [SIL Open Font License 1.1](https://openfontlicense.org),
+  served by the app from [`static/fonts`](src/main/resources/static/fonts) with their license files.
