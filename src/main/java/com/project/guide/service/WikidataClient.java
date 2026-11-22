@@ -5,7 +5,6 @@ import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.sparql.exec.http.QueryExecutionHTTP;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -18,7 +17,7 @@ import java.util.function.Function;
 
 /**
  * HTTP access to Wikidata: search API and SPARQL query service.
- * Wikimedia rejects requests with the default Java User-Agent (HTTP 403), so a descriptive one is sent.
+ * Wikimedia rejects requests with the default Java User-Agent (HTTP 403), so the SPARQL client sends it too.
  */
 @Component
 public class WikidataClient {
@@ -27,9 +26,9 @@ public class WikidataClient {
     private final WikidataProperties properties;
     private final String userAgent;
 
-    public WikidataClient(RestTemplateBuilder restTemplateBuilder, WikidataProperties properties,
+    public WikidataClient(RestTemplate wikimediaRestTemplate, WikidataProperties properties,
                           @Value("${api.user-agent}") String userAgent) {
-        this.restTemplate = restTemplateBuilder.defaultHeader(HttpHeaders.USER_AGENT, userAgent).build();
+        this.restTemplate = wikimediaRestTemplate;
         this.properties = properties;
         this.userAgent = userAgent;
     }

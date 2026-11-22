@@ -2,10 +2,12 @@ package com.project.guide.service;
 
 import com.project.guide.config.CommonsProperties;
 import com.project.guide.service.CommonsClient.ImageInfo;
+import com.project.guide.config.WikimediaClientConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -20,6 +22,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 /**
  * Tests the Commons image info client against a mocked HTTP server.
  */
+@Import(WikimediaClientConfig.class)
 @RestClientTest(
         components = CommonsClient.class,
         properties = "api.user-agent=TestAgent/1.0"

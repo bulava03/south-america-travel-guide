@@ -2,9 +2,6 @@ package com.project.guide.service;
 
 import com.project.guide.dto.WikidataAttraction;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -35,9 +32,8 @@ public class WikipediaService {
 
     private final RestTemplate restTemplate;
 
-    public WikipediaService(RestTemplateBuilder restTemplateBuilder, @Value("${api.user-agent}") String userAgent) {
-        // Wikimedia requires a descriptive User-Agent
-        this.restTemplate = restTemplateBuilder.defaultHeader(HttpHeaders.USER_AGENT, userAgent).build();
+    public WikipediaService(RestTemplate wikimediaRestTemplate) {
+        this.restTemplate = wikimediaRestTemplate;
     }
 
     /**

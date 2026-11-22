@@ -1,9 +1,6 @@
 package com.project.guide.service;
 
 import com.project.guide.config.CommonsProperties;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -20,10 +17,8 @@ public class CommonsClient {
     private final RestTemplate restTemplate;
     private final CommonsProperties properties;
 
-    public CommonsClient(RestTemplateBuilder restTemplateBuilder, CommonsProperties properties,
-                         @Value("${api.user-agent}") String userAgent) {
-        // Wikimedia rejects requests with the default Java User-Agent
-        this.restTemplate = restTemplateBuilder.defaultHeader(HttpHeaders.USER_AGENT, userAgent).build();
+    public CommonsClient(RestTemplate wikimediaRestTemplate, CommonsProperties properties) {
+        this.restTemplate = wikimediaRestTemplate;
         this.properties = properties;
     }
 

@@ -1,10 +1,12 @@
 package com.project.guide.service;
 
 import com.project.guide.config.WikidataProperties;
+import com.project.guide.config.WikimediaClientConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -21,6 +23,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 /**
  * Tests the Wikidata search API client against a mocked HTTP server.
  */
+@Import(WikimediaClientConfig.class)
 @RestClientTest(
         components = WikidataClient.class,
         properties = "api.user-agent=TestAgent/1.0"
