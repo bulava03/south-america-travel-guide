@@ -80,8 +80,7 @@ class WebControllerTest {
         when(attractionService.getAttractionDetails(1L)).thenReturn(new AttractionDetailDTO(
                 1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450,
                 "http://example.com/a.jpg", PhotoLayout.COVER, "Inca citadel",
-                "https://en.wikipedia.org/wiki/Machu_Picchu", "http://www.wikidata.org/entity/Q676203",
-                List.of("http://example.com/a.jpg")
+                "https://en.wikipedia.org/wiki/Machu_Picchu", "http://www.wikidata.org/entity/Q676203"
         ));
 
         when(attractionService.findMoreInCountry(any(), anyInt())).thenReturn(List.of(new AttractionDTO(
@@ -120,7 +119,7 @@ class WebControllerTest {
                 "visibleAttractions", 1L,
                 "hiddenAttractions", 1L,
                 "withoutPhoto", 0L,
-                "totalImages", 2L,
+                "withPhoto", 2L,
                 "countries", List.of("Brazil"),
                 "countryCount", 1,
                 "failedCountries", List.of("Venezuela"),

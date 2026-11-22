@@ -51,15 +51,14 @@ class AttractionApiControllerTest {
         when(attractionService.getAttractionDetails(1L)).thenReturn(new AttractionDetailDTO(
                 1L, "Machu Picchu", "archaeological site", List.of("Peru"), -13.1631, -72.5450,
                 "http://example.com/a.jpg", PhotoLayout.COVER, "Inca citadel",
-                "https://en.wikipedia.org/wiki/Machu_Picchu", "http://www.wikidata.org/entity/Q676203",
-                List.of("http://example.com/a.jpg")
+                "https://en.wikipedia.org/wiki/Machu_Picchu", "http://www.wikidata.org/entity/Q676203"
         ));
 
         mockMvc.perform(get("/api/attractions/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Machu Picchu"))
                 .andExpect(jsonPath("$.description").value("Inca citadel"))
-                .andExpect(jsonPath("$.additionalImages.length()").value(1));
+                .andExpect(jsonPath("$.image").value("http://example.com/a.jpg"));
     }
 
     @Test

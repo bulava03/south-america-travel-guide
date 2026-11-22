@@ -11,7 +11,7 @@ public enum AdminFilter {
     ALL(attraction -> true),
     VISIBLE(attraction -> !attraction.isHidden()),
     HIDDEN(Attraction::isHidden),
-    NO_PHOTO(attraction -> attraction.getMainImage() == null);
+    NO_PHOTO(attraction -> attraction.getImage() == null);
 
     private final Predicate<Attraction> condition;
 

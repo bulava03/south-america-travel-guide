@@ -72,7 +72,7 @@
         <h2 id="more-title" th:text="'More in ' + *{countries[0]}">More in Brazil</h2>
         <div class="more-cards">
             <a class="mini" th:each="m : ${more}" th:href="@{/attraction/{id}(id=${m.id})}">
-                <span class="mini-photo"><img th:if="${m.mainImage != null}" th:src="${m.smallThumbnail}" alt="" loading="lazy"></span>
+                <span class="mini-photo"><img th:if="${m.image != null}" th:src="${m.smallThumbnail}" alt="" loading="lazy"></span>
                 <span class="mini-text">
                     <span class="mini-name" th:text="${m.name}">Iguaçu Falls</span>
                     <span class="mini-type" th:text="${m.type}">waterfall</span>

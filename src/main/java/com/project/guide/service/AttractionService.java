@@ -10,7 +10,6 @@ import com.project.guide.dto.WikidataFetchResult;
 import com.project.guide.exception.AttractionNotFoundException;
 import com.project.guide.model.Attraction;
 import com.project.guide.model.CountrySync;
-import com.project.guide.repository.AttractionImageRepository;
 import com.project.guide.repository.AttractionRepository;
 import com.project.guide.repository.CountrySyncRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +37,6 @@ import java.util.stream.Collectors;
 public class AttractionService {
 
     private final AttractionRepository attractionRepository;
-    private final AttractionImageRepository imageRepository;
     private final CountrySyncRepository countrySyncRepository;
 
     /**
@@ -181,6 +179,7 @@ public class AttractionService {
         List<String> countries = attractionRepository.findAllDistinctCountries();
         long total = attractionRepository.count();
         long hidden = attractionRepository.countByHiddenTrue();
+        long withoutPhoto = attractionRepository.countByImageIsNull();
         List<CountrySync> syncs = countrySyncRepository.findAll();
         List<String> failedCountries = syncs.stream()
                 .filter(sync -> !sync.isSucceeded())
@@ -191,8 +190,8 @@ public class AttractionService {
                 "totalAttractions", total,
                 "visibleAttractions", total - hidden,
                 "hiddenAttractions", hidden,
-                "withoutPhoto", attractionRepository.countByMainImageIsNull(),
-                "totalImages", imageRepository.count(),
+                "withPhoto", total - withoutPhoto,
+                "withoutPhoto", withoutPhoto,
                 "countries", countries,
                 "countryCount", countries.size(),
                 "failedCountries", failedCountries,

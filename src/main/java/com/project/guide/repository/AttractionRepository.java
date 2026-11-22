@@ -63,7 +63,7 @@ public interface AttractionRepository extends JpaRepository<Attraction, Long> {
 
     long countByHiddenTrue();
 
-    long countByMainImageIsNull();
+    long countByImageIsNull();
 
     /**
      * Wikidata URIs of hidden attractions, skipped by the sync.

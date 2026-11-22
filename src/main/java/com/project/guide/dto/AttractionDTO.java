@@ -20,21 +20,21 @@ public class AttractionDTO {
     private List<String> countries;
     private Double latitude;
     private Double longitude;
-    private String mainImage;
+    private String image;
     private PhotoLayout photoLayout;
 
     /**
      * Photo for a card, 800 px wide.
      */
     public String getThumbnail() {
-        return DisplayFormat.thumbnail(mainImage, 800);
+        return DisplayFormat.thumbnail(image, 800);
     }
     
     /**
      * Photo for small cards, 200 px wide.
      */
     public String getSmallThumbnail() {
-        return DisplayFormat.thumbnail(mainImage, 200);
+        return DisplayFormat.thumbnail(image, 200);
     }
 
     public static AttractionDTO from(Attraction attraction) {
@@ -45,8 +45,8 @@ public class AttractionDTO {
                 attraction.getCountries().stream().sorted().toList(),
                 attraction.getLatitude(),
                 attraction.getLongitude(),
-                attraction.getMainImage(),
-                PhotoLayout.of(attraction.getMainImage(), attraction.getMainImageWidth(), attraction.getMainImageHeight())
+                attraction.getImage(),
+                PhotoLayout.of(attraction.getImage(), attraction.getImageWidth(), attraction.getImageHeight())
         );
     }
 }

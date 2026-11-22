@@ -2,8 +2,8 @@
 -- Covers every photo treatment (cover, whole photo, print, no photo), a place in two countries,
 -- a hidden place and saved sync results of three countries. Descriptions are stored as the sync saves them.
 
-INSERT INTO attractions (id, wikidata_uri, name, type, latitude, longitude, main_image, main_image_width,
-                         main_image_height, description, wikipedia_url, popularity, hidden)
+INSERT INTO attractions (id, wikidata_uri, name, type, latitude, longitude, image, image_width,
+                         image_height, description, wikipedia_url, popularity, hidden)
 VALUES (1, 'http://www.wikidata.org/entity/Q676203', 'Machu Picchu', 'archaeological site', -13.1631, -72.545,
         'http://commons.wikimedia.org/wiki/Special:FilePath/E2E%20Machu%20Picchu.jpg', 5184, 3456,
         'Machu Picchu is a 15th-century Inca citadel.', NULL, 141, FALSE),
@@ -37,11 +37,6 @@ VALUES (1, 'Peru'),
        (7, 'Bolivia'),
        (8, 'Venezuela'),
        (9, 'Brazil');
-
-INSERT INTO attraction_images (image_url, attraction_id)
-SELECT main_image, id
-FROM attractions
-WHERE main_image IS NOT NULL;
 
 INSERT INTO country_syncs (country, synced_at, succeeded, place_count, message)
 VALUES ('Brazil', NOW(6) - INTERVAL 2 DAY, TRUE, 25, NULL),

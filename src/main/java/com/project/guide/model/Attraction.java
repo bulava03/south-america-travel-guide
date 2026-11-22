@@ -4,8 +4,6 @@ import com.project.guide.dto.WikidataAttraction;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
@@ -57,13 +55,13 @@ public class Attraction {
     private Double longitude;
     
     @Column(length = 1000)
-    private String mainImage;
+    private String image;
 
     @Column
-    private Integer mainImageWidth;
+    private Integer imageWidth;
 
     @Column
-    private Integer mainImageHeight;
+    private Integer imageHeight;
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -77,20 +75,8 @@ public class Attraction {
     @Column(nullable = false)
     private boolean hidden;
     
-    @OneToMany(mappedBy = "attraction", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<AttractionImage> images = new ArrayList<>();
-    
     /**
-     * Helper method to add an image to this attraction.
-     */
-    public void addImage(AttractionImage image) {
-        images.add(image);
-        image.setAttraction(this);
-    }
-
-    /**
-     * Replaces all fields fetched from Wikidata and Wikipedia; the first image becomes the main one.
+     * Replaces all fields fetched from Wikidata and Wikipedia; the first photo is shown.
      * If the description of the same article was not fetched this time, the previous one is kept.
      */
     public void updateFrom(WikidataAttraction data) {
@@ -108,10 +94,8 @@ public class Attraction {
         countries.clear();
         countries.addAll(data.getCountries());
 
-        images.clear();
-        mainImage = data.getImages().isEmpty() ? null : data.getImages().get(0);
-        mainImageWidth = data.getImageWidth();
-        mainImageHeight = data.getImageHeight();
-        data.getImages().forEach(url -> addImage(AttractionImage.builder().imageUrl(url).build()));
+        image = data.getImages().isEmpty() ? null : data.getImages().get(0);
+        imageWidth = data.getImageWidth();
+        imageHeight = data.getImageHeight();
     }
 }

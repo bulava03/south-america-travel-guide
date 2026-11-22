@@ -9,10 +9,8 @@ import com.project.guide.dto.WikidataAttraction;
 import com.project.guide.dto.WikidataFetchResult;
 import com.project.guide.exception.AttractionNotFoundException;
 import com.project.guide.model.Attraction;
-import com.project.guide.model.AttractionImage;
 import com.project.guide.model.CountrySync;
 import com.project.guide.repository.AttractionRepository;
-import com.project.guide.repository.AttractionImageRepository;
 import com.project.guide.repository.CountrySyncRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Limit;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,9 +36,6 @@ class AttractionServiceTest {
 
     @Mock
     private AttractionRepository attractionRepository;
-
-    @Mock
-    private AttractionImageRepository imageRepository;
 
     @Mock
     private CountrySyncRepository countrySyncRepository;
@@ -62,8 +56,7 @@ class AttractionServiceTest {
                 .popularity(140)
                 .latitude(-13.1631)
                 .longitude(-72.5450)
-                .mainImage("http://example.com/image.jpg")
-                .images(new ArrayList<>())
+                .image("http://example.com/image.jpg")
                 .build();
     }
 
@@ -145,7 +138,7 @@ class AttractionServiceTest {
     @Test
     void testFindMoreInCountryExcludesTheAttractionItself() {
         Attraction titicaca = Attraction.builder().id(2L).name("Titicaca")
-                .countries(new TreeSet<>(Set.of("Bolivia", "Peru"))).images(new ArrayList<>()).build();
+                .countries(new TreeSet<>(Set.of("Bolivia", "Peru"))).build();
         when(attractionRepository.findByCountry("Peru")).thenReturn(List.of(testAttraction, titicaca));
 
         var machuPicchu = AttractionDetailDTO.from(testAttraction);
@@ -180,18 +173,16 @@ class AttractionServiceTest {
         assertEquals(99, attraction.getPopularity());
         assertEquals(-25.695, attraction.getLatitude());
         assertEquals(-54.4367, attraction.getLongitude());
-        assertEquals("http://example.com/a.jpg", attraction.getMainImage());
-        assertEquals(1280, attraction.getMainImageWidth());
-        assertEquals(789, attraction.getMainImageHeight());
+        assertEquals("http://example.com/a.jpg", attraction.getImage());
+        assertEquals(1280, attraction.getImageWidth());
+        assertEquals(789, attraction.getImageHeight());
         assertEquals("Iguazu Falls are waterfalls.", attraction.getDescription());
-        assertEquals(2, attraction.getImages().size());
-        assertSame(attraction, attraction.getImages().get(0).getAttraction());
     }
 
     @Test
     void testSaveUpdatesExistingAttractionInsteadOfRecreating() {
         // Arrange
-        testAttraction.addImage(AttractionImage.builder().imageUrl("http://example.com/old.jpg").build());
+        testAttraction.setImage("http://example.com/old.jpg");
         WikidataAttraction updated = wikidataAttraction(testAttraction.getWikidataUri(), "Machu Picchu (updated)",
                 List.of("http://example.com/new.jpg"));
         updated.getCountries().add("Peru");
@@ -208,9 +199,7 @@ class AttractionServiceTest {
         assertEquals(1L, testAttraction.getId());
         assertEquals("Machu Picchu (updated)", testAttraction.getName());
         assertEquals(Set.of("Peru"), testAttraction.getCountries());
-        assertEquals(1, testAttraction.getImages().size());
-        assertEquals("http://example.com/new.jpg", testAttraction.getImages().get(0).getImageUrl());
-        assertEquals("http://example.com/new.jpg", testAttraction.getMainImage());
+        assertEquals("http://example.com/new.jpg", testAttraction.getImage());
 
         verify(attractionRepository, never()).deleteAll();
         verify(attractionRepository).deleteAll(List.of());
@@ -335,7 +324,6 @@ class AttractionServiceTest {
                 .wikidataUri("http://www.wikidata.org/entity/" + entityId)
                 .name(name)
                 .countries(new TreeSet<>(countries))
-                .images(new ArrayList<>())
                 .build();
     }
 

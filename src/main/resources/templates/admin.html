@@ -35,7 +35,7 @@
         </div>
         <div class="stat">
             <span class="stat-label">Photos</span>
-            <span class="stat-value" th:text="${stats.totalImages}">1184</span>
+            <span class="stat-value" th:text="${stats.withPhoto}">1184</span>
             <span class="stat-note">checked on Commons</span>
         </div>
         <div class="stat">
@@ -137,7 +137,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="preview-part" th:if="${a.mainImage != null}">
+                                    <div class="preview-part" th:if="${a.image != null}">
                                         <span class="preview-label">Whole photo</span>
                                         <div class="preview-full"><img th:src="${p.photo}" th:alt="${a.name}" loading="lazy"></div>
                                         <span class="preview-note">

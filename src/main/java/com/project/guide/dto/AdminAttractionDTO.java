@@ -20,11 +20,11 @@ public class AdminAttractionDTO {
      * Whole photo for the preview, 1600 px wide.
      */
     public String getPhoto() {
-        return DisplayFormat.thumbnail(card.getMainImage(), 1600);
+        return DisplayFormat.thumbnail(card.getImage(), 1600);
     }
 
     public String getPhotoPage() {
-        return DisplayFormat.commonsPage(card.getMainImage());
+        return DisplayFormat.commonsPage(card.getImage());
     }
 
     public static AdminAttractionDTO from(Attraction attraction) {
@@ -32,8 +32,8 @@ public class AdminAttractionDTO {
                 AttractionDTO.from(attraction),
                 attraction.getPopularity(),
                 attraction.isHidden(),
-                attraction.getMainImageWidth(),
-                attraction.getMainImageHeight()
+                attraction.getImageWidth(),
+                attraction.getImageHeight()
         );
     }
 }

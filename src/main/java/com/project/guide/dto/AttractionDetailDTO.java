@@ -2,7 +2,6 @@ package com.project.guide.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.project.guide.model.Attraction;
-import com.project.guide.model.AttractionImage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,23 +21,22 @@ public class AttractionDetailDTO {
     private List<String> countries;
     private Double latitude;
     private Double longitude;
-    private String mainImage;
+    private String image;
     private PhotoLayout photoLayout;
     private String description;
     private String wikipediaUrl;
     private String wikidataUri;
-    private List<String> additionalImages;
 
     /**
      * Photo for the attraction page, 1600 px wide.
      */
     public String getPhoto() {
-        return DisplayFormat.thumbnail(mainImage, 1600);
+        return DisplayFormat.thumbnail(image, 1600);
     }
 
     @JsonIgnore
     public String getPhotoPage() {
-        return DisplayFormat.commonsPage(mainImage);
+        return DisplayFormat.commonsPage(image);
     }
     
     @JsonIgnore
@@ -69,12 +67,11 @@ public class AttractionDetailDTO {
                 attraction.getCountries().stream().sorted().toList(),
                 attraction.getLatitude(),
                 attraction.getLongitude(),
-                attraction.getMainImage(),
-                PhotoLayout.of(attraction.getMainImage(), attraction.getMainImageWidth(), attraction.getMainImageHeight()),
+                attraction.getImage(),
+                PhotoLayout.of(attraction.getImage(), attraction.getImageWidth(), attraction.getImageHeight()),
                 attraction.getDescription(),
                 attraction.getWikipediaUrl(),
-                attraction.getWikidataUri(),
-                attraction.getImages().stream().map(AttractionImage::getImageUrl).toList()
+                attraction.getWikidataUri()
         );
     }
 }
