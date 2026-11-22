@@ -70,7 +70,10 @@ class AttractionApiControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.detail").value("Attraction not found with id: 999"));
+                .andExpect(jsonPath("$.type").value("about:blank"))
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.detail").value("Attraction not found with id: 999"))
+                .andExpect(jsonPath("$.instance").value("/api/attractions/999"));
     }
 
     @Test

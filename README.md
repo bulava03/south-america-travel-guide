@@ -25,13 +25,16 @@ springdoc-openapi, Docker Compose. Tests: JUnit 5, Mockito, Spring MockMvc, Play
 
 - **The most popular places of every country.** Popularity is the number of Wikipedia language
   editions; at most four places of one type per country keep the list varied.
-- **Photos that fit.** Every photo is checked on Commons: maps, flags and drawings are dropped,
-  and each card shows the photo in the way that suits its size: cropped, whole over a blurred copy,
-  or as a print when it is too small to be stretched.
+- **Only places with a real photo.** Every photo is checked on Commons: maps, flags and drawings are
+  dropped, and a place left without a photo is not added at all. Each card shows the photo in the way
+  that suits its size: cropped, whole over a blurred copy, or as a print when it is too small to be
+  stretched. If a photo link breaks later, the card shows the place name on green instead.
 - **Places in several countries** (Iguazu Falls: Argentina and Brazil) are shown once, in both countries.
+- **Fast pages.** Place data and descriptions are saved in the database during the sync, so pages
+  never wait for Wikidata or Wikipedia.
 - **Admin panel** with a background sync and its progress for every country, retry of a failed
   country, and hiding of places that should not be on the site; the next popular place takes their slot.
-- **Public REST API** with OpenAPI documentation.
+- **Public REST API** with interactive documentation (Swagger UI).
 
 ## Running
 
@@ -71,7 +74,7 @@ words that mark a file as not a photo are in [`commons.yml`](src/main/resources/
 ## How the sync works
 
 One SPARQL query by type and country is too slow for the 60-second limit of the Wikidata Query Service,
-so every country is fetched in three fast steps:
+so every country is fetched from Wikidata in three fast steps:
 
 1. **Search:** the Wikidata search API finds candidates of the configured types with a photo and coordinates.
 2. **Candidates:** a SPARQL query ([`candidates.rq`](src/main/resources/sparql/candidates.rq)) gets their types
@@ -79,10 +82,18 @@ so every country is fetched in three fast steps:
 3. **Details:** a second query ([`details.rq`](src/main/resources/sparql/details.rq)) gets names, coordinates,
    photos and Wikipedia links of the selected places.
 
-Then the photos are checked on Wikimedia Commons (type and size, 50 files per request) and the result is saved.
-A failed country is retried once and then skipped: its places stay as they were. A place that Wikidata
-no longer returns is removed only if all its countries were fetched. The latest result of every country is
-stored, so the admin panel shows when each country was synced and which ones failed.
+Then the places of all fetched countries go through three more steps:
+
+4. **Photos:** every photo is checked on Wikimedia Commons (file type and size, 50 files per request).
+   Places left without a real photo are dropped.
+5. **Descriptions:** the first paragraph of every place's English Wikipedia article (20 articles per request).
+   If Wikipedia does not answer, the place keeps its previous description.
+6. **Saving.**
+
+A failed country is retried once and then skipped: its places stay as they were. A place that is no longer
+in the result (Wikidata stopped returning it, or its photo was removed) is deleted only if all its countries
+were fetched. The latest result of every country is stored, so the admin panel shows when each country
+was synced and which ones failed.
 
 ## REST API
 
@@ -92,8 +103,21 @@ stored, so the admin panel shows when each country was synced and which ones fai
 | `GET /api/attractions/{id}` | Place with its Wikipedia description |
 | `GET /api/countries` | Countries that have places |
 
-Errors are returned as RFC 7807 problem details. The admin API (`/api/admin/**`) requires the admin role
-and is not part of the public documentation.
+Every request is answered from the database, without calls to Wikimedia. If a request fails, the answer has
+the matching HTTP status (404 for an unknown place, 400 for a wrong request) and a JSON body whose `detail`
+says what went wrong:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "Attraction not found with id: 999",
+  "instance": "/api/attractions/999"
+}
+```
+
+The admin API (`/api/admin/**`) requires the admin login and is not part of the public documentation.
 
 ## Tests
 
