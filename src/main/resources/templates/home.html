@@ -3,8 +3,9 @@
 <head th:replace="~{fragments :: pageHead('South America Guide')}"></head>
 <body>
 <div class="hero">
-    <img class="hero-bg" alt=""
-         src="https://commons.wikimedia.org/wiki/Special:FilePath/Aerial%20Foz%20de%20Igua%C3%A7u%2026%20Nov%202005.jpg?width=1920">
+    <!-- The original (1500 px) directly: Special:FilePath would cost two redirects -->
+    <img class="hero-bg" alt="" fetchpriority="high"
+         src="https://upload.wikimedia.org/wikipedia/commons/9/91/Aerial_Foz_de_Igua%C3%A7u_26_Nov_2005.jpg">
     <div class="hero-shade"></div>
 
     <header class="hero-header container">

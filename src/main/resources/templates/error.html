@@ -4,11 +4,11 @@
 <head th:replace="~{fragments :: pageHead(${notFound} ? 'Page not found - South America Guide' : 'Error - South America Guide')}"></head>
 <body>
 <div class="hero hero-error">
-    <!-- 404: Salar de Uyuni, other errors: Torres del Paine -->
-    <img class="hero-bg" alt="" th:if="${notFound}"
-         src="https://commons.wikimedia.org/wiki/Special:FilePath/Salar%20de%20Uyuni%20-%20panoramio%20(10).jpg?width=1920">
-    <img class="hero-bg" alt="" th:unless="${notFound}"
-         src="https://commons.wikimedia.org/wiki/Special:FilePath/Torres%20del%20Paine%2C%20Laguna%20Azul%2009.jpg?width=1920">
+    <!-- 404: Salar de Uyuni, other errors: Torres del Paine; 1920 px thumbnails directly (originals are 6-9 MB) -->
+    <img class="hero-bg" alt="" fetchpriority="high" th:if="${notFound}"
+         src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Salar_de_Uyuni_-_panoramio_%2810%29.jpg/1920px-Salar_de_Uyuni_-_panoramio_%2810%29.jpg">
+    <img class="hero-bg" alt="" fetchpriority="high" th:unless="${notFound}"
+         src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Torres_del_Paine%2C_Laguna_Azul_09.jpg/1920px-Torres_del_Paine%2C_Laguna_Azul_09.jpg">
     <div class="hero-shade"></div>
 
     <header class="hero-header container">
