@@ -65,7 +65,7 @@ To run the app from an IDE, start only the database (`docker compose up -d mysql
 | `DB_USERNAME`, `DB_PASSWORD` | MySQL user, created by the container on the first start; dev defaults in Compose |
 | `ADMIN_USERNAME`, `ADMIN_PASSWORD` | Admin panel login, `admin` / `admin` in Compose by default; outside Compose the app does not start without the password |
 | `DB_URL` | JDBC URL, only needed outside Docker |
-| `SYNC_PER_COUNTRY_LIMIT` | Places per country, 25 by default |
+| `SYNC_PER_COUNTRY_LIMIT` | Places selected per country, 25 by default; places without a real photo are dropped after that |
 | `SYNC_MAX_PER_TYPE` | Places of one type per country, 4 by default |
 
 Countries, place types and their priority are in [`wikidata.yml`](src/main/resources/wikidata.yml);
@@ -149,7 +149,7 @@ to Wikimedia. CI runs both test suites on every push.
 
 ```
 src/main/java/com/project/guide/
-  config/       security, settings from wikidata.yml and commons.yml, startup sync
+  config/       security, Wikimedia HTTP client, settings from wikidata.yml and commons.yml, startup sync
   controller/   pages, REST API, admin API, error pages
   service/      Wikidata, Commons and Wikipedia clients, sync, attractions
   dto/          data for pages and the API, photo layout
