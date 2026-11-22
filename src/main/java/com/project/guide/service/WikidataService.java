@@ -4,6 +4,7 @@ import com.project.guide.config.WikidataProperties;
 import com.project.guide.config.WikidataProperties.AttractionType;
 import com.project.guide.dto.WikidataAttraction;
 import com.project.guide.dto.WikidataFetchResult;
+import com.project.guide.exception.UnknownCountryException;
 import com.project.guide.service.SyncListener.CountryStep;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.query.QuerySolution;
@@ -76,7 +77,7 @@ public class WikidataService {
         for (String countryName : countryNames) {
             String countryId = idsByName.get(countryName);
             if (countryId == null) {
-                throw new IllegalArgumentException("Unknown country: " + countryName);
+                throw new UnknownCountryException(countryName);
             }
             try {
                 int count = withRetry(countryName,

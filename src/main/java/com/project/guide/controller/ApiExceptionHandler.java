@@ -2,6 +2,7 @@ package com.project.guide.controller;
 
 import com.project.guide.exception.AttractionNotFoundException;
 import com.project.guide.exception.SyncInProgressException;
+import com.project.guide.exception.UnknownCountryException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -29,8 +30,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ProblemDetail handleBadRequest(IllegalArgumentException e) {
+    @ExceptionHandler(UnknownCountryException.class)
+    public ProblemDetail handleUnknownCountry(UnknownCountryException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 

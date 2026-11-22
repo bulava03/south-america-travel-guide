@@ -5,6 +5,7 @@ import com.project.guide.dto.AdminStatistics;
 import com.project.guide.dto.SyncStatus;
 import com.project.guide.exception.AttractionNotFoundException;
 import com.project.guide.exception.SyncInProgressException;
+import com.project.guide.exception.UnknownCountryException;
 import com.project.guide.service.AttractionService;
 import com.project.guide.service.SyncService;
 import org.junit.jupiter.api.Test;
@@ -103,7 +104,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void testSyncOfUnknownCountryReturnsBadRequest() throws Exception {
-        doThrow(new IllegalArgumentException("Unknown country: Mexico")).when(syncService).startCountry("Mexico");
+        doThrow(new UnknownCountryException("Mexico")).when(syncService).startCountry("Mexico");
 
         mockMvc.perform(post("/api/admin/sync/Mexico").with(csrf()))
                 .andExpect(status().isBadRequest())

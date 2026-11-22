@@ -3,6 +3,7 @@ package com.project.guide.service;
 import com.project.guide.config.WikidataProperties;
 import com.project.guide.dto.WikidataAttraction;
 import com.project.guide.dto.WikidataFetchResult;
+import com.project.guide.exception.UnknownCountryException;
 import com.project.guide.service.SyncListener.CountryStep;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.riot.ResultSetMgr;
@@ -118,7 +119,7 @@ class WikidataServiceTest {
 
     @Test
     void testFetchAttractionsRejectsUnknownCountry() {
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(UnknownCountryException.class,
                 () -> wikidataService.fetchAttractions(List.of("Mexico"), Set.of(), SyncListener.NONE));
     }
 

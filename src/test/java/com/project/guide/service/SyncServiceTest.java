@@ -5,6 +5,7 @@ import com.project.guide.dto.SyncSummary;
 import com.project.guide.dto.WikidataAttraction;
 import com.project.guide.dto.WikidataFetchResult;
 import com.project.guide.exception.SyncInProgressException;
+import com.project.guide.exception.UnknownCountryException;
 import com.project.guide.model.CountrySync;
 import com.project.guide.repository.CountrySyncRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -104,7 +105,7 @@ class SyncServiceTest {
 
     @Test
     void testUnknownCountryIsRejected() {
-        assertThrows(IllegalArgumentException.class, () -> syncService.startCountry("Mexico"));
+        assertThrows(UnknownCountryException.class, () -> syncService.startCountry("Mexico"));
         assertFalse(syncService.status().running());
     }
 

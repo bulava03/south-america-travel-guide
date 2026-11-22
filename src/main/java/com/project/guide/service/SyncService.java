@@ -6,6 +6,7 @@ import com.project.guide.dto.SyncStatus.LastSync;
 import com.project.guide.dto.SyncSummary;
 import com.project.guide.dto.WikidataFetchResult;
 import com.project.guide.exception.SyncInProgressException;
+import com.project.guide.exception.UnknownCountryException;
 import com.project.guide.model.CountrySync;
 import com.project.guide.repository.CountrySyncRepository;
 import com.project.guide.service.SyncProgress.CountryProgress;
@@ -47,12 +48,12 @@ public class SyncService {
     }
 
     /**
-     * @throws IllegalArgumentException if the country is not in wikidata.yml
-     * @throws SyncInProgressException  if a sync is already running
+     * @throws UnknownCountryException if the country is not in wikidata.yml
+     * @throws SyncInProgressException if a sync is already running
      */
     public void startCountry(String country) {
         if (!wikidataService.countryNames().contains(country)) {
-            throw new IllegalArgumentException("Unknown country: " + country);
+            throw new UnknownCountryException(country);
         }
         start(List.of(country));
     }
